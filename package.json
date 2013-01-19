@@ -1,0 +1,11 @@
+{
+  "name": "twilight",
+  "version": "0.1.1",
+  "bin": {
+    "twitter-curl": "./bin/twitter-curl.js",
+    "rtcount": "./bin/rtcount.js"
+  },
+  "dependencies" : {
+    "optimist": "*"
+  }
+}
