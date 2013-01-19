@@ -9,7 +9,7 @@ setup(
     version=package['version'],
     author='Christopher Brown',
     author_email='chrisbrown@utexas.edu',
-    packages=['lexicons'],
+    packages=[package['name']],
     include_package_data=True,
     zip_safe=False,
     install_requires=[
