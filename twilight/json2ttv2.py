@@ -1,18 +1,28 @@
 #!/usr/bin/env python
 import os
+import re
 import gzip
 import bz2
 import argparse
 from twilight import stdout_tabs, stdoutn, stderrn
 from twilight.ttv import TTV2
 
+
+description = '''Convert json.gz files to ttv2.
+    ttv2izer looks at /usr/local/data/twitter/*.json.gz files and sequentially ttv2'izes them.
+    To check if it's behaving:
+    cat yourfile.bz2 | awk 'BEGIN{FS="\\t"}{print NF}' # should only output 26's'''
+
+
 def open_any(path):
+    '''Open any Tweets raw json file, depending on its extension.'''
     if path.endswith('gz'):
         return gzip.GzipFile(path)
     elif path.endswith('bz2'):
         return bz2.BZ2File(path)
     else:
         return open(path)
+
 
 def convert_json_to_ttv2(json_path, ttv2_path):
     # the given json_path can be either gzip'ed or bzip2'ed or not
@@ -30,10 +40,7 @@ def convert_json_to_ttv2(json_path, ttv2_path):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='''Convert json.gz files to ttv2.
-        ttv2izer looks at /usr/local/data/twitter/*.json.gz files and sequentially ttv2'izes them.
-        To check if it's behaving:
-        cat yourfile.bz2 | awk 'BEGIN{FS="\\t"}{print NF}' # should only output 26's''',
+    parser = argparse.ArgumentParser(description=description,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--directory', default='/usr/local/data/twitter')
     parser.add_argument('--delete', action='store_true')
@@ -42,9 +49,8 @@ def main():
 
     os.chdir(opts.directory)
     for filename in os.listdir('.'):
-        # json_path, e.g. = /usr/local/data/twitter/nafrica_20121028.json.gz
         # only do gz extensions for now, to ensure we don't try to pick up any live files.
-        if '.json.gz' in filename:
+        if re.search(filename, '.json(.gz)?'):
             ttv2_filename = '%s.ttv2.bz2' % filename.split('.')[0]
 
             stdout_tabs(filename, '>', ttv2_filename)
