@@ -50,7 +50,7 @@ def main():
     os.chdir(opts.directory)
     for filename in os.listdir('.'):
         # only do gz extensions for now, to ensure we don't try to pick up any live files.
-        if re.search(filename, '.json(.gz)?'):
+        if re.search('.json(.gz)?$', filename):
             ttv2_filename = '%s.ttv2.bz2' % filename.split('.')[0]
 
             stdout_tabs(filename, '>', ttv2_filename)
