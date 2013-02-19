@@ -49,7 +49,7 @@ def main():
 
     os.chdir(opts.directory)
     for filename in os.listdir('.'):
-        # only do gz extensions for now, to ensure we don't try to pick up any live files.
+        # we only look at .json or .json.gz files
         if re.search('.json(.gz)?$', filename):
             ttv2_filename = '%s.ttv2.bz2' % filename.split('.')[0]
 
@@ -64,20 +64,23 @@ def main():
             fraction = os.stat(ttv2_filename).st_size / float(os.stat(filename).st_size)
             stdout_tabs('%0.2f%% as big' % (fraction * 100))
 
-            if fraction > 0.5:
-                stdout_tabs('too-big')
-            elif fraction < 0.18:
-                stdout_tabs('too-small')
-            else:
-                if opts.delete:
-                    stdout_tabs('rm')
-                    os.remove(filename)
-                else:
-                    stdout_tabs('deletable')
-        else:
-            stdout_tabs(filename, 'not json')
+            deletable = False
+            if filename.endswith('.gz') and 0.18 < fraction < 0.5:
+                deletable = True
+            elif 0.02 < fraction < 0.06:
+                deletable = True
 
-        stdoutn()
+            if deletable and opts.delete:
+                stdout_tabs('rm')
+                os.remove(filename)
+            elif deletable:
+                stdout_tabs('deletable')
+            else:
+                stdout_tabs('bad-size')
+
+            stdoutn()
+        # else:
+            # stdout_tabs(filename, 'not json')
 
 
 if __name__ == '__main__':
