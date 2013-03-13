@@ -30,11 +30,13 @@ def convert_json_to_ttv2(json_path, ttv2_path):
     with bz2.BZ2File(ttv2_path, 'w') as ttv2_fp:
         with open_any(json_path) as json_fp:
             for line in json_fp:
-                line = line.decode('utf-8')
                 try:
+                    line = line.decode('utf-8')
                     tweet = TTV2.from_json(line)
                     ttv2_fp.write(tweet.to_tsv().encode('utf-8'))
                     ttv2_fp.write('\n')
+                except UnicodeDecodeError, exc:
+                    stderrn("Error decoding string: %s (%s)" % (line.strip(), exc))
                 except Exception, exc:
                     stderrn("Error translating json: %s (%s)" % (line.strip(), exc))
 
