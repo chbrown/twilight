@@ -114,7 +114,7 @@ class TTV2(Tweet):
             d['in_reply_to_status_id_str'] or u'',
             d['in_reply_to_screen_name'] or u'',
             retweet_id,
-            unicode(d['retweet_count']),
+            unicode(d.get('retweet_count', '')),
             user.get('screen_name', ''),
             user.get('id_str', ''),
             user_created_at,
@@ -132,4 +132,3 @@ class TTV2(Tweet):
             user.get('lang') or u'',
             unicode(user.get('utc_offset') or '')
         ))
-
