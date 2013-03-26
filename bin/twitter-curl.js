@@ -54,6 +54,7 @@ setInterval(function() {
 if (argv.timeout) {
   setTimeout(function() {
     console.error('TIMEOUT');
-    process.exit(0); // more or less doing what it's told, so it's not an error
+    // more or less doing what it's told, but we exit with 1 so that supervisord will restart us
+    process.exit(1);
   }, argv.timeout * 1000);
 }
