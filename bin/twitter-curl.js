@@ -1,57 +1,59 @@
 #!/usr/bin/env node
-var fs = require('fs'),
-  https = require('https'),
-  argv = require('optimist').argv,
-  username = argv.u,
-  password = argv.p,
-  query = argv.q,
-  timeout = parseInt(argv.t || 600, 10) * 1000,
-  last_data = Date.now(),
-  timestamp = (new Date()).toISOString().slice(0, 19).replace(/:/g, '-'),
-  out = process.stdout;
+'use strict'; /*jslint es5: true, node: true */
+var fs = require('fs');
+var request = require('request');
+var querystring = require('querystring');
 
-// node twitter-curl -u chbrown -p mypassword -q "track=bieber"
-//   -f is optional, and if provided, will be used as the output filepath
-//      if -f is not specified, output will be sent to standard out.
-//   -t defaults to 10s, and describes how long the script will wait for new
-//      data before dying. format is time in integer seconds
+var last_data = Date.now();
 
-var options = {
-  host: 'stream.twitter.com',
-  path: '/1.1/statuses/filter.json',
-  method: 'POST',
-  auth: username + ':' + password,
-  headers: {
-    'Content-Type': 'application/x-www-form-urlencoded',
-    'Accept-Encoding': 'compress, gzip'
-  }
-};
+var argv = require('optimist').
+  usage('Usage: $0 --user chbrown --pass mypassword --query "track=bieber"').
+  demand(['user', 'pass', 'query']).
+  default('interval', 600).default('file', '-').argv;
 
-if (argv.f) {
-  var filepath = argv.f.replace(/TIMESTAMP/, timestamp);
+//   --file is optional, and if provided, will be used as the output filepath
+//      if --file is not specified, output will be sent to standard out.
+//   --interval defaults to 10 minutes, and describes how long the script will wait for new
+//      data before dying. --interval is time in integer seconds.
+
+var out = process.stdout;
+if (argv.file != '-') {
+  var timestamp = new Date().toISOString().replace(/:/g, '-').replace(/\..+/, '');
+  var filepath = argv.file.replace(/TIMESTAMP/, timestamp);
   out = fs.createWriteStream(filepath, {flags: 'a', encoding: null, mode: '0664'});
 }
 
-var req = https.request(options, function(res) {
-  res.on('data', function(d) {
-    last_data = Date.now();
-    out.write(d);
-  });
+
+var form = querystring.parse(argv.query);
+form.stall_warnings = true;
+var req = request.post({
+  url: 'https://stream.twitter.com/1.1/statuses/filter.json',
+  form: form,
+  auth: { user: argv.user, pass: argv.pass }
 });
 
+req.on('data', function(d) {
+  last_data = Date.now();
+  out.write(d);
+});
 req.on('error', function(e) {
   console.error(e);
 });
 
-req.write(query + '&stall_warnings=true');
-req.end();
-
-
-// ensure we get something every 10 seconds.
+// ensure we get something every x seconds.
+var interval_ms = argv.interval * 1000;
 setInterval(function() {
-  if (last_data < (Date.now() - timeout)) {
-    console.error('TIMEOUT');
-    // or DIE, hahahaha. Hopefully you've got supervisord configured.
+  if (last_data < (Date.now() - interval_ms)) {
+    console.error('INTERVAL');
+    // or DIE if we don't get something, hahahaha.
+    // Hopefully you've got supervisord configured.
     process.exit(1);
   }
-}, timeout);
+}, interval_ms);
+
+if (argv.timeout) {
+  setTimeout(function() {
+    console.error('TIMEOUT');
+    process.exit(0); // more or less doing what it's told, so it's not an error
+  }, argv.timeout * 1000);
+}
