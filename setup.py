@@ -13,7 +13,8 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        'pyshp'
+        'pyshp',
+        'psutil'
     ],
     entry_points={
         'console_scripts': [

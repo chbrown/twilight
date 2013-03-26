@@ -4,6 +4,7 @@ import re
 import gzip
 import bz2
 import argparse
+import psutil
 from twilight import stdout_tabs, stdoutn, stderrn
 from twilight.ttv import TTV2
 
@@ -12,6 +13,16 @@ description = '''Convert json.gz files to ttv2.
     ttv2izer looks at /usr/local/data/twitter/*.json.gz files and sequentially ttv2'izes them.
     To check if it's behaving:
     cat yourfile.bz2 | awk 'BEGIN{FS="\\t"}{print NF}' # should only output 26's'''
+
+
+def get_openfiles():
+    openfiles = []
+    for p in psutil.get_process_list():
+        try:
+            openfiles += [os.path.basename(openfile.path) for openfile in p.get_open_files()]
+        except psutil.AccessDenied:
+            pass
+    return openfiles
 
 
 def open_any(path):
@@ -50,39 +61,38 @@ def main():
     opts = parser.parse_args()
 
     os.chdir(opts.directory)
-    for filename in os.listdir('.'):
-        # we only look at .json or .json.gz files
-        if re.search('.json(.gz)?$', filename):
-            ttv2_filename = '%s.ttv2.bz2' % filename.split('.')[0]
+    # filter out the openfiles, and only look at .json or .json.gz files
+    openfiles = get_openfiles()
+    filenames = [filename for filename in os.listdir('.') if re.search('.json(.gz)?$', filename) and filename not in openfiles]
+    for filename in filenames:
+        ttv2_filename = '%s.ttv2.bz2' % filename.split('.')[0]
 
-            stdout_tabs(filename, '>', ttv2_filename)
+        stdout_tabs(filename, '>', ttv2_filename)
 
-            if not os.path.exists(ttv2_filename) or opts.overwrite:
-                stdout_tabs('ttv2izing')
-                convert_json_to_ttv2(filename, ttv2_filename)
-            else:
-                stdout_tabs('ttv2ized')
+        if not os.path.exists(ttv2_filename) or opts.overwrite:
+            stdout_tabs('ttv2izing')
+            convert_json_to_ttv2(filename, ttv2_filename)
+        else:
+            stdout_tabs('ttv2ized')
 
-            fraction = os.stat(ttv2_filename).st_size / float(os.stat(filename).st_size)
-            stdout_tabs('%0.2f%% as big' % (fraction * 100))
+        fraction = os.stat(ttv2_filename).st_size / float(os.stat(filename).st_size)
+        stdout_tabs('%0.2f%% as big' % (fraction * 100))
 
-            deletable = False
-            if filename.endswith('.gz') and 0.18 < fraction < 0.5:
-                deletable = True
-            elif 0.02 < fraction < 0.06:
-                deletable = True
+        deletable = False
+        if filename.endswith('.gz') and 0.18 < fraction < 0.5:
+            deletable = True
+        elif 0.02 < fraction < 0.06:
+            deletable = True
 
-            if deletable and opts.delete:
-                stdout_tabs('rm')
-                os.remove(filename)
-            elif deletable:
-                stdout_tabs('deletable')
-            else:
-                stdout_tabs('bad-size')
+        if deletable and opts.delete:
+            stdout_tabs('rm')
+            os.remove(filename)
+        elif deletable:
+            stdout_tabs('deletable')
+        else:
+            stdout_tabs('bad-size')
 
-            stdoutn()
-        # else:
-            # stdout_tabs(filename, 'not json')
+        stdoutn()
 
 
 if __name__ == '__main__':
