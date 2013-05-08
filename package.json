@@ -1,6 +1,6 @@
 {
   "name": "twilight",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "bin": {
     "twitter-curl": "./bin/twitter-curl.js",
     "rtcount": "./bin/rtcount.js"

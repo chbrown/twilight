@@ -23,7 +23,6 @@ if (argv.file != '-') {
   out = fs.createWriteStream(filepath, {flags: 'a', encoding: null, mode: '0664'});
 }
 
-
 var form = querystring.parse(argv.query);
 form.stall_warnings = true;
 var req = request.post({
