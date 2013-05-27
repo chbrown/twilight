@@ -56,3 +56,7 @@ But beyond that, it doesn't provide anything more than `curl`.
 
 The Python and Javascript components are complementary.
 The Javascript offers crawlers, Python provides post-processing.
+
+## License
+
+Copyright © 2011–2013 Christopher Brown. [MIT Licensed](LICENSE).
