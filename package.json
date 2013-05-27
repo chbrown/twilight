@@ -1,8 +1,13 @@
 {
   "name": "twilight",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Twitter (crawling) tools.",
-  "keywords": ["twilight", "oauth", "crawling", "bot"],
+  "keywords": [
+    "twilight",
+    "oauth",
+    "crawling",
+    "bot"
+  ],
   "homepage": "http://github.com/chbrown/twilight",
   "repository": {
     "type": "git",
@@ -14,7 +19,7 @@
   },
   "author": "Christopher Brown <io@henrian.com> (http://henrian.com)",
   "license": "MIT",
-  "dependencies" : {
+  "dependencies": {
     "optimist": "*",
     "request": "*"
   }
