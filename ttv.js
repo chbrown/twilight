@@ -2,9 +2,10 @@
 var util = require('util');
 var stream = require('stream');
 var sv = require('sv');
+var Rechunker = require('./rechunker');
 
 function clean(s) {
-  return s.replace(/[\t\n\r]/g, ' ');
+  return (s === undefined || s === null) ? s : s.replace(/[\t\n\r]/g, ' ');
 }
 function compactDate(dt) {
   if (!dt) {
@@ -18,29 +19,30 @@ function compactDate(dt) {
   return dt.toISOString().replace(/\..+/, '').replace(/[-:]/g, '');
 }
 
-var JSONtoTweet = exports.JSONtoTweet = function(opts) {
+var JSONStoTweet = exports.JSONStoTweet = function() {
   // converts json strings to objects
-  if (opts === undefined) opts = {};
-  opts.encoding = opts.encoding || 'utf8';
-  opts.objectMode = true;
-  stream.Transform.call(this, opts);
+  Rechunker.call(this, {objectMode: true});
 };
-util.inherits(JSONtoTweet, stream.Transform);
+util.inherits(JSONStoTweet, Rechunker);
 
-JSONtoTweet.prototype._transform = function(string, encoding, callback) {
+JSONStoTweet.prototype._chunk = function(chunk, encoding, callback) {
   var obj;
+  encoding = encoding == 'buffer' ? 'utf8' : encoding;
+  var line = Buffer.isBuffer(chunk) ? chunk.toString() : chunk;
   try {
-    obj = JSON.stringify(string);
+    // the constructor isn't heeding options of {encoding: 'utf8', decodeStrings: false}
+    obj = JSON.parse(line);
   } catch (err) {
     this.emit('error', err);
     return;
   }
 
   var text = clean(obj.text);
-  (obj.entities.urls || []).forEach(function(url) {
+  var entities = obj.entities || {};
+  (entities.urls || []).forEach(function(url) {
     text = text.replace(url.url, url.expanded_url || url.url);
   });
-  (obj.entities.media || []).forEach(function(url) {
+  (entities.media || []).forEach(function(url) {
     text = text.replace(url.url, url.media_url || url.url);
   });
   text = text
@@ -109,6 +111,6 @@ var Tweet2TTV2 = exports.Tweet2TTV2 = function(opts) {
   opts.encoding = opts.encoding || 'utf8';
   opts.missing = '';
   opts.delimiter = '\t';
-  sv.Stringifer.call(this, opts);
+  sv.Stringifier.call(this, opts);
 };
-util.inherits(Tweet2TTV2, sv.Stringifer);
+util.inherits(Tweet2TTV2, sv.Stringifier);
