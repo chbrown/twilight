@@ -4,7 +4,6 @@ var fs = require('fs');
 var stream = require('stream');
 var request = require('request');
 var querystring = require('querystring');
-var BufferStream = require('bufferstream');
 var gzbz = require('gzbz/streaming');
 var TimeoutDetector = require('../timeout');
 var ttv = require('../ttv');
@@ -52,12 +51,13 @@ var timeout_detector = new TimeoutDetector({timeout: argv.interval}); // timeout
 timeout_detector.on('error', die);
 
 // 3. newline_splitter
-var newline_splitter = new BufferStream({size: 'flexible', split: '\n'});
-newline_splitter.on('error', die);
+// var newline_splitter = new Rebuffer({split: '\n'});
+// newline_splitter.on('error', die);
+// factor this into the JSONStoTweet transform, actually.
 
 // 4. tweet consolidator
-var json_to_tweet = new ttv.JSONtoTweet();
-json_to_tweet.on('error', die);
+var jsons_to_tweet = new ttv.JSONStoTweet();
+jsons_to_tweet.on('error', die);
 
 // 5. ttv2 flattener
 var tweet_to_ttv2 = new ttv.Tweet2TTV2();
@@ -78,8 +78,7 @@ if (argv.file != '-') {
 // # hook it all together
 request_stream
   .pipe(timeout_detector)
-  .pipe(newline_splitter)
-  .pipe(json_to_tweet)
+  .pipe(jsons_to_tweet)
   .pipe(tweet_to_ttv2)
-  .pipe(bzip_stream)
+  // .pipe(bzip_stream)
   .pipe(output);
