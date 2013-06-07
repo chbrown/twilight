@@ -15,7 +15,6 @@
   },
   "bin": {
     "twitter-curl": "./bin/twitter-curl.js",
-    "twitter-ttv2": "./bin/twitter-ttv2.js",
     "rtcount": "./bin/rtcount.js"
   },
   "author": "Christopher Brown <io@henrian.com> (http://henrian.com)",
