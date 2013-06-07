@@ -20,11 +20,13 @@ var argv = require('optimist').usage([
     ' --ttv2              convert to TTV2 (json by default)'
   ].join('\n')).boolean('ttv2')
   .demand(['user', 'pass', 'query'])
+  .alias({u: 'user', username: 'user', screenname: 'user', p: 'pass', pw: 'pass', password: 'pass'})
   .default({interval: 600, file: '-'}).argv;
 
 function die(exc) {
   console.error(exc.toString());
   // more or less doing what it's told, but we exit with 1 so that supervisord will restart us
+  // console.error('EXIT 1');
   process.exit(1);
 }
 
@@ -46,6 +48,12 @@ var request_stream = request.post({
   auth: { user: argv.user, pass: argv.pass }
 });
 request_stream.on('error', die);
+request_stream.on('response', function(response) {
+  if (response.statusCode != 200) {
+    die(new Error('HTTP Error ' + response.statusCode));
+  }
+});
+
 
 // 2. timeout: ensure we get something every x seconds.
 var timeout_detector = new TimeoutDetector({timeout: argv.interval}); // timeout takes seconds
@@ -82,6 +90,7 @@ if (argv.file != '-') {
   var filepath = argv.file.replace(/TIMESTAMP/, timestamp);
   destination = fs.createWriteStream(filepath, {flags: 'a', encoding: null, mode: '0664'});
 }
+destination.on('error', die);
 
 // # hook it all together
 var outlet = request_stream.pipe(timeout_detector);
