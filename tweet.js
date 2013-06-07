@@ -1,7 +1,6 @@
 'use strict'; /*jslint node: true, es5: true, indent: 2 */
 var util = require('util');
 var stream = require('stream');
-var sv = require('sv');
 var Rechunker = require('./rechunker');
 
 function clean(s) {
@@ -67,7 +66,6 @@ JSONStoTweet.prototype._chunk = function(chunk, encoding, callback) {
     }
   }
 
-  // missing = ''
   var user = obj.user || {};
   this.push({
     id: obj.id_str,
@@ -98,19 +96,3 @@ JSONStoTweet.prototype._chunk = function(chunk, encoding, callback) {
     user_utc_offset: user.utc_offset
   });
 };
-
-var Tweet2TTV2 = exports.Tweet2TTV2 = function(opts) {
-  if (opts === undefined) opts = {};
-  opts.columns = ['id', 'created_at', 'text', 'coordinates', 'place_id', 'place_str',
-    'in_reply_to_status_id', 'in_reply_to_screen_name', 'retweet_id',
-    'retweet_count', 'user_screen_name', 'user_id', 'user_created_at',
-    'user_name', 'user_description', 'user_location', 'user_url',
-    'user_statuses_count', 'user_followers_count', 'user_friends_count',
-    'user_favourites_count', 'user_geo_enabled', 'user_default_profile',
-    'user_time_zone', 'user_lang', 'user_utc_offset'];
-  opts.encoding = opts.encoding || 'utf8';
-  opts.missing = '';
-  opts.delimiter = '\t';
-  sv.Stringifier.call(this, opts);
-};
-util.inherits(Tweet2TTV2, sv.Stringifier);
