@@ -24,18 +24,21 @@ var JSONStoTweet = exports.JSONStoTweet = function() {
 };
 util.inherits(JSONStoTweet, Rechunker);
 
-JSONStoTweet.prototype._chunk = function(chunk, encoding, callback) {
+JSONStoTweet.prototype._chunk = function(chunk, encoding) {
   var obj;
-  encoding = encoding == 'buffer' ? 'utf8' : encoding;
-  var line = Buffer.isBuffer(chunk) ? chunk.toString() : chunk;
+  if (encoding == 'buffer' || encoding === undefined) encoding = 'utf8';
+  var line = Buffer.isBuffer(chunk) ? chunk.toString(encoding) : chunk;
   try {
-    // the constructor isn't heeding options of {encoding: 'utf8', decodeStrings: false}
     obj = JSON.parse(line);
   } catch (err) {
     this.emit('error', err);
     return;
   }
 
+  if (!obj.text) {
+    // ignoring "delete" or "{ limit: { track: 587 } }" notice
+    return;
+  }
   var text = clean(obj.text);
   var entities = obj.entities || {};
   (entities.urls || []).forEach(function(url) {

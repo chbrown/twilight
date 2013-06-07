@@ -17,7 +17,7 @@ Rechunker.prototype._transform = function(chunk, encoding, callback) {
   var end = buffer.length;
   for (var i = 0; i < end; i++) {
     if (buffer[i] === this.split_byte) {
-      this._chunk(buffer.slice(start, i));
+      this._chunk(buffer.slice(start, i), encoding);
       start = i + 1;
     }
   }

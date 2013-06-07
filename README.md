@@ -10,6 +10,8 @@ Or github (to make sure you're getting the latest):
 
 ### From my `/etc/supervisor/conf.d/*`
 
+(See http://supervisord.org/ to get that all set up.)
+
 ```bash
 [program:justinnnnnn]
 user=chbrown
@@ -58,32 +60,32 @@ But beyond that, without `--ttv2`, it doesn't provide anything more than `curl`.
 TTV2 is the Tweet tab-separated format version 2, the specification is below.
 Fields are 1-indexed for easy AWKing.
 
- 0. tweet_id
- 1. created_at parsed into YYYYMMDDTHHMMSS, implicitly UTC
- 2. text, newlines and tabs converted to spaces, html entities replaced, t.co urls resolved
- 3. lon,lat
- 4. place_id
- 5. place_str
- 6. in_reply_to_status_id
- 7. in_reply_to_screen_name
- 8. retweet_id id of the original tweet
- 9. retweet_count
-10. user.screen_name
-11. user.id
-12. user.created_at parsed into YYYYMMDDTHHMMSS
-13. user.name
-14. user.description
-15. user.location
-16. user.url
-17. user.statuses_count
-18. user.followers_count
-19. user.friends_count
-20. user.favourites_count
-21. user.geo_enabled
-22. user.default_profile
-23. user.time_zone
-24. user.lang
-25. user.utc_offset
+  0. tweet_id
+  1. created_at parsed into YYYYMMDDTHHMMSS, implicitly UTC
+  2. text, newlines and tabs converted to spaces, html entities replaced, t.co urls resolved
+  3. lon,lat
+  4. place_id
+  5. place_str
+  6. in_reply_to_status_id
+  7. in_reply_to_screen_name
+  8. retweet_id id of the original tweet
+  9. retweet_count
+  10. user.screen_name
+  11. user.id
+  12. user.created_at parsed into YYYYMMDDTHHMMSS
+  13. user.name
+  14. user.description
+  15. user.location
+  16. user.url
+  17. user.statuses_count
+  18. user.followers_count
+  19. user.friends_count
+  20. user.favourites_count
+  21. user.geo_enabled
+  22. user.default_profile
+  23. user.time_zone
+  24. user.lang
+  25. user.utc_offset
 
 ## Examples
 
