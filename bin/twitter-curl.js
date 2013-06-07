@@ -50,7 +50,7 @@ var request_stream = request.post({
 request_stream.on('error', die);
 request_stream.on('response', function(response) {
   if (response.statusCode != 200) {
-    response.pipe(process.stdin);
+    response.pipe(process.stdout);
     die(new Error('HTTP Error ' + response.statusCode));
   }
 });
