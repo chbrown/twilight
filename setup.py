@@ -20,7 +20,8 @@ setup(
         'console_scripts': [
             'json2ttv2 = twilight.json2ttv2:main',
             'tweetop = twilight.tweetop:main',
-            'geogrep = twilight.geogrep:main'
+            'geogrep = twilight.geogrep:main',
+            'twitter-user = twilight.user:main',
         ],
     },
 )
