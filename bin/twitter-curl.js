@@ -9,19 +9,18 @@ var sv = require('sv');
 var gzbz = require('gzbz/streaming');
 
 var argv = require('optimist').usage([
-    'Usage: $0 --user chbrown --pass mypassword --query "track=bieber"',
+    'Usage: twitter-curl --query "track=bieber"',
     '',
-    ' --user [USER]       twitter user',
-    ' --pass [PASSWORD]   twitter password',
+    ' --accounts [FILE]   filepath of twitter oauth csv (defaults to ~/.twitter)',
     ' --query [PASSWORD]  twitter API query',
     ' --file [-]          output target, defaults to STDOUT',
     ' --interval [600]    how long to wait before dying from boredom, in seconds',
     ' --timeout [NEVER]   die after NEVER seconds no matter what',
     ' --ttv2              convert to TTV2 (json by default)'
   ].join('\n')).boolean('ttv2')
-  .demand(['user', 'pass', 'query'])
+  .demand(['query'])
   .alias({u: 'user', username: 'user', screenname: 'user', p: 'pass', pw: 'pass', password: 'pass'})
-  .default({interval: 600, file: '-'}).argv;
+  .default({interval: 600, file: '-', accounts: '~/.twitter'}).argv;
 
 function die(exc) {
   console.error(exc.toString());
@@ -39,21 +38,16 @@ if (argv.timeout) {
 // pipeline works like:
 // # curl | timeout detector | split on newlines and normalize tweet | ttv2 | [bzip2] | file / stdout
 
-// 1. curl
-var form = querystring.parse(argv.query);
-form.stall_warnings = true;
-var request_stream = request.post({
-  url: 'https://stream.twitter.com/1.1/statuses/filter.json',
-  form: form,
-  auth: { user: argv.user, pass: argv.pass }
-});
-request_stream.on('error', die);
-request_stream.on('response', function(response) {
-  if (response.statusCode != 200) {
-    response.pipe(process.stdout);
-    die(new Error('HTTP Error ' + response.statusCode));
-  }
-});
+// , url = 'https://api.twitter.com/1/users/show.json?'
+// , params =
+//   { screen_name: perm_token.screen_name
+//   , user_id: perm_token.user_id
+//   }
+// ;
+// url += qs.stringify(params)
+// request.get({url:url, oauth:oauth, json:true}, function (e, r, user) {
+//   console.log(user)
+// })
 
 
 // 2. timeout: ensure we get something every x seconds.
@@ -93,10 +87,51 @@ if (argv.file != '-') {
 }
 destination.on('error', die);
 
-// # hook it all together
-var outlet = request_stream.pipe(timeout_detector);
-if (argv.ttv2) {
-  outlet = outlet.pipe(jsons_to_tweet).pipe(tweet_to_ttv2);
-}
-// outlet = outlet.pipe(bzip_stream)
-outlet.pipe(destination);
+
+// 1. curl
+var account_csv_filepath = argv.accounts.replace(/^~/, process.env.HOME);
+var account_csv_stream = fs.createReadStream(account_csv_filepath, {encoding: 'utf8'});
+
+// get twitter accounts
+var accounts = [];
+account_csv_stream.pipe(new sv.Parser())
+.on('data', function(account) { accounts.push(account); })
+.on('end', function() {
+  var account = accounts[Math.random() * accounts.length | 0];
+  // console.error('Using @' + account.screen_name);
+  // console.error(account);
+  // e.g., account = {
+  //   screen_name: 'leoparder',
+  //   consumer_key: 'ziurk0AOdn71U63Yp9EG4',
+  //   consumer_secret: 'VKmTsGrk2JjH4qcYFpaAX5iEDthoW7ZyeU03NxPS1ld',
+  //   oauth_token: '915051675-bCH2SYP6Ok9epWwnu7A0DhrlIQBMUaoLtxVzfRG5',
+  //   oauth_token_secret: 'VcLOIzA0mkiCSbUYDWrNv3n86EXJa4HQKMgqfd7' }
+  var form = querystring.parse(argv.query);
+  form.stall_warnings = true;
+  var request_stream = request.post({
+    url: 'https://stream.twitter.com/1.1/statuses/filter.json',
+    form: form,
+    oauth: {
+      consumer_key: account.consumer_key,
+      consumer_secret: account.consumer_secret,
+      token: account.oauth_token,
+      token_secret: account.oauth_token_secret,
+    }
+  });
+  request_stream.on('error', die);
+  request_stream.on('response', function(response) {
+    if (response.statusCode != 200) {
+      response.on('end', function() {
+        die(new Error('HTTP Error ' + response.statusCode));
+      }).pipe(process.stderr);
+    }
+  });
+
+  // # hook it all together
+  var outlet = request_stream.pipe(timeout_detector);
+  if (argv.ttv2) {
+    outlet = outlet.pipe(jsons_to_tweet).pipe(tweet_to_ttv2);
+  }
+  // outlet = outlet.pipe(bzip_stream)
+  outlet.pipe(destination);
+});
