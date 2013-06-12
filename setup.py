@@ -14,7 +14,8 @@ setup(
     zip_safe=False,
     install_requires=[
         'pyshp',
-        'psutil'
+        'psutil',
+        'twython',
     ],
     entry_points={
         'console_scripts': [

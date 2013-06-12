@@ -1,23 +1,37 @@
 #!/usr/bin/env python
+import os
+import csv
 import sys
 import argparse
 import json
-# import os
-import requests
+import random
+from twython import Twython
 from twilight import stderrn
 
-api = 'https://api.twitter.com/1/'
+# import tweepy
+# auth = tweepy.auth.OAuthHandler(consumer_key, consumer_secret)
+# auth.set_access_token(access_key, access_pass)
+# api = tweepy.API(auth)
 
+# tweets = {} #Maps IDs to Tweet Objects
+# for tweet_id in ids_list:
+#     tweets[tweet_id] = api.get_status(tweet_id)
 
 def main():
     parser = argparse.ArgumentParser(description='Crawl all tweets from a given user.')
     parser.add_argument('--output', default='-', help='output file (defaults to STDOUT)')
-    parser.add_argument('-u', '--username', help='Twitter user to use to crawl')
-    parser.add_argument('-p', '--password', help='Password for crawl connections.')
-    parser.add_argument('--screen_name', help='output file (defaults to STDOUT)')
+    # parser.add_argument('--consumer_key', help='Twitter user to use to crawl')
+    # parser.add_argument('--password', help='Password for crawl connections.')
+    parser.add_argument('--screen_name', help='Twitter user to crawl')
     opts = parser.parse_args()
 
-    auth = (opts.username, opts.password)
+    accounts = [row for row in csv.DictReader(open(os.path.expanduser('~/.twitter')))]
+    account = random.sample(accounts, 1)[0]
+    client = Twython(
+        account['consumer_key'], account['consumer_secret'],
+        account['oauth_token'], account['oauth_token_secret'])
+
+    # auth = (opts.username, opts.password)
     params = dict(
         screen_name=opts.screen_name,
         include_entities='true',
@@ -29,8 +43,7 @@ def main():
     output = sys.stdout if opts.output == '-' else open(opts.output, 'a')
 
     while True:
-        r = requests.get(api + 'statuses/user_timeline.json', auth=auth, params=params)
-        tweets = r.json()
+        tweets = client.get_user_timeline(**params)
         count = len(tweets)
         for tweet in tweets:
             json.dump(tweet, output)
@@ -38,7 +51,11 @@ def main():
 
         counts.append(count)
         if count > 0:
-            params['max_id'] = tweets[-1]['id'] - 1
+            try:
+                params['max_id'] = tweets[-1]['id'] - 1
+            except Exception, exc:
+                print exc, tweets
+                return
 
         empties = len([count for count in counts if count < 10])
         if empties > 5:
