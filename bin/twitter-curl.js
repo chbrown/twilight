@@ -38,18 +38,6 @@ if (argv.timeout) {
 // pipeline works like:
 // # curl | timeout detector | split on newlines and normalize tweet | ttv2 | [bzip2] | file / stdout
 
-// , url = 'https://api.twitter.com/1/users/show.json?'
-// , params =
-//   { screen_name: perm_token.screen_name
-//   , user_id: perm_token.user_id
-//   }
-// ;
-// url += qs.stringify(params)
-// request.get({url:url, oauth:oauth, json:true}, function (e, r, user) {
-//   console.log(user)
-// })
-
-
 // 2. timeout: ensure we get something every x seconds.
 var timeout_detector = new TimeoutDetector({timeout: argv.interval}); // timeout takes seconds
 timeout_detector.on('error', die);

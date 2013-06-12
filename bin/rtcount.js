@@ -49,14 +49,13 @@ function end() {
   for (var text in retweets) {
     retweets_array.push(retweets[text]);
   }
-  console.log(retweets_array.toString());
+  // console.log(retweets_array.toString());
 
   retweets_array.sort(function(a, b) {
     return a.dates.length - b.dates.length;
   }).forEach(function(retweet) {
-    if (retweet.dates.length > 1) {
-      console.log(retweet.dates.length + '\t' + retweet.text + '\t' + retweet.dates.join(','));
-    }
+    // if (retweet.dates.length > 1)
+    console.log(retweet.dates.length + '\t' + retweet.text + '\t' + retweet.dates.join(','));
   });
 
   process.exit();

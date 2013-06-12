@@ -8,6 +8,28 @@ Or github (to make sure you're getting the latest):
 
     npm install -g git://github.com/chbrown/twilight
 
+## Authenticate
+
+As of 11 June 2013, [basic HTTP authentication is disabled](https://dev.twitter.com/docs/faq#17750)
+in the Twitter Streaming API. So get some OAuth credentials together [real quick](https://github.com/chbrown/autoauth) and make a csv file that looks something like this:
+
+| screen_name | consumer_key | consumer_secret | oauth_token | oauth_token_secret |
+|-------------|--------------|-----------------|-------------|--------------------|
+| leo         | ziurk0An7... | VKmTsGrk2JjH... | 91505165... | VcLOIzA0mkiCSbU... |
+| fat         | 63Yp9EG4t... | DhrlIQBMUaoL... | 91401882... | XJa4HQKMgqfd7ee... |
+
+There must be a header line, and it must have at least the following values:
+
+  * consumer_key
+  * consumer_secret
+  * oauth_token
+  * oauth_token_secret
+
+Other values are fine, and will simply be ignored.
+
+The script expects to find this file at `~/.twitter`,
+but you can specify a different path with the `--accounts` command line argument.
+
 ### From my `/etc/supervisor/conf.d/*`
 
 (See http://supervisord.org/ to get that all set up.)
@@ -17,7 +39,6 @@ Or github (to make sure you're getting the latest):
 user=chbrown
 command=twitter-curl
     --query "track=loveyabiebs,belieber,bietastrophe"
-    --user twittahname --pass twittahpass
     --file /usr/local/data/twitter/justin_TIMESTAMP.json
     --timeout 86400
     --interval 3600
@@ -26,6 +47,8 @@ command=twitter-curl
 
 ## `twitter-curl` options
 
+* `--accounts` should point to a file with OAuth Twitter account credentials.
+  Currently, the script will simply use a random row from this file.
 * `--query` can be any `track=whatever` or `locations=-18,14,68,44` etc. A
   querystring parsable string.
 * `--file` shouldn't require creating any directions, and the TIMESTAMP bit
@@ -87,16 +110,18 @@ Fields are 1-indexed for easy AWKing.
   24. user.lang
   25. user.utc_offset
 
+This format is not the default, and will be the output only when you use the `--ttv2` option.
+
 ## Examples
 
 Install [json](https://github.com/zpoley/json-command) first: `npm install json`. It's awesome.
 
-    twitter-curl --user fat --pass macron --query 'track=bootsrap' | json -C text
-    twitter-curl --user fat --pass macron --query 'track=bootsrap' | json -C screenname,text
+    twitter-curl --query 'track=bootstrap' | json -C text
+    twitter-curl --query 'track=bootstrap' | json -C screenname,text
 
 Or with plain AWK on TTV2:
 
-    twitter-curl --user jack --pass 1234yes --query 'track=data,science' --ttv2 | awk 'BEGIN{FS="\t"}{print $4,$3}'
+    twitter-curl --query 'track=data,science' --ttv2 | awk 'BEGIN{FS="\t"}{print $4,$3}'
 
 ### Stats
 
