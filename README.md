@@ -119,6 +119,7 @@ Install [json](https://github.com/zpoley/json-command) first: `npm install json`
 
     twitter-curl --query 'track=bootstrap' | json -C text
     twitter-curl --query 'track=bootstrap' | json -C screenname,text
+    twitter-curl --query 'track=انتخابات' | json -C text
 
 Or with plain AWK on TTV2:
 
