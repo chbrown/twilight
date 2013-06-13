@@ -92,8 +92,8 @@ account_csv_stream.pipe(new sv.Parser())
   //   screen_name: 'leoparder',
   //   consumer_key: 'ziurk0AOdn71U63Yp9EG4',
   //   consumer_secret: 'VKmTsGrk2JjH4qcYFpaAX5iEDthoW7ZyeU03NxPS1ld',
-  //   oauth_token: '915051675-bCH2SYP6Ok9epWwnu7A0DhrlIQBMUaoLtxVzfRG5',
-  //   oauth_token_secret: 'VcLOIzA0mkiCSbUYDWrNv3n86EXJa4HQKMgqfd7' }
+  //   access_token: '915051675-bCH2SYP6Ok9epWwnu7A0DhrlIQBMUaoLtxVzfRG5',
+  //   access_token_secret: 'VcLOIzA0mkiCSbUYDWrNv3n86EXJa4HQKMgqfd7' }
   var form = querystring.parse(argv.query);
   form.stall_warnings = true;
   var request_stream = request.post({
@@ -102,8 +102,8 @@ account_csv_stream.pipe(new sv.Parser())
     oauth: {
       consumer_key: account.consumer_key,
       consumer_secret: account.consumer_secret,
-      token: account.oauth_token,
-      token_secret: account.oauth_token_secret,
+      token: account.access_token,
+      token_secret: account.access_token_secret,
     }
   });
   request_stream.on('error', die);

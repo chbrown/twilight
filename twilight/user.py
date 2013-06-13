@@ -17,6 +17,7 @@ from twilight import stderrn
 # for tweet_id in ids_list:
 #     tweets[tweet_id] = api.get_status(tweet_id)
 
+
 def main():
     parser = argparse.ArgumentParser(description='Crawl all tweets from a given user.')
     parser.add_argument('--output', default='-', help='output file (defaults to STDOUT)')
@@ -29,7 +30,7 @@ def main():
     account = random.sample(accounts, 1)[0]
     client = Twython(
         account['consumer_key'], account['consumer_secret'],
-        account['oauth_token'], account['oauth_token_secret'])
+        account['access_token'], account['access_token_secret'])
 
     # auth = (opts.username, opts.password)
     params = dict(

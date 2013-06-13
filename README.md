@@ -13,7 +13,7 @@ Or github (to make sure you're getting the latest):
 As of 11 June 2013, [basic HTTP authentication is disabled](https://dev.twitter.com/docs/faq#17750)
 in the Twitter Streaming API. So get some OAuth credentials together [real quick](https://github.com/chbrown/autoauth) and make a csv file that looks like this:
 
-| consumer_key | consumer_secret | oauth_token | oauth_token_secret |
+| consumer_key | consumer_secret | access_token | access_token_secret |
 |--------------|-----------------|-------------|--------------------|
 | ziurk0An7... | VKmTsGrk2JjH... | 91505165... | VcLOIzA0mkiCSbU... |
 | 63Yp9EG4t... | DhrlIQBMUaoL... | 91401882... | XJa4HQKMgqfd7ee... |
@@ -23,8 +23,8 @@ There **must** be a header line with _exactly_ the following values:
 
   * consumer_key
   * consumer_secret
-  * oauth_token
-  * oauth_token_secret
+  * access_token
+  * access_token_secret
 
 Tab / space seperated is fine, and any other columns will simply be ignored, e.g., if you want to record the `screen_name` of each account. Also, order doesn't matter -- your headers just have to line up with their values.
 
