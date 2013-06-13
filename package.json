@@ -22,7 +22,7 @@
   "dependencies": {
     "gzbz": "git://github.com/chbrown/gzbz.git",
     "optimist": "*",
-    "request": "*",
+    "request": "~2.21",
     "sv": "*"
   }
 }

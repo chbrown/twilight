@@ -17,9 +17,14 @@ var argv = require('optimist').usage([
     ' --interval [600]    how long to wait before dying from boredom, in seconds',
     ' --timeout [NEVER]   die after NEVER seconds no matter what',
     ' --ttv2              convert to TTV2 (json by default)'
-  ].join('\n')).boolean('ttv2')
+  ].join('\n'))
+  .boolean(['ttv2', 'verbose'])
   .demand(['query'])
-  .alias({u: 'user', username: 'user', screenname: 'user', p: 'pass', pw: 'pass', password: 'pass'})
+  .alias({
+    u: 'user', username: 'user', screenname: 'user',
+    p: 'pass', pw: 'pass', password: 'pass',
+    v: 'verbose',
+  })
   .default({interval: 600, file: '-', accounts: '~/.twitter'}).argv;
 
 function die(exc) {
@@ -86,8 +91,17 @@ account_csv_stream.pipe(new sv.Parser())
 .on('data', function(account) { accounts.push(account); })
 .on('end', function() {
   var account = accounts[Math.random() * accounts.length | 0];
-  // console.error('Using @' + account.screen_name);
-  // console.error(account);
+  var oauth = {
+    consumer_key: account.consumer_key,
+    consumer_secret: account.consumer_secret,
+    token: account.access_token,
+    token_secret: account.access_token_secret,
+  };
+
+  if (argv.verbose) {
+    console.error('Using Twitter account: ' + JSON.stringify(account));
+    console.error('Using OAuth: ' + JSON.stringify(oauth));
+  }
   // e.g., account = {
   //   screen_name: 'leoparder',
   //   consumer_key: 'ziurk0AOdn71U63Yp9EG4',
