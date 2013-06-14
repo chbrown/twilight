@@ -20,7 +20,6 @@
   "author": "Christopher Brown <io@henrian.com> (http://henrian.com)",
   "license": "MIT",
   "dependencies": {
-    "gzbz": "git://github.com/chbrown/gzbz.git",
     "optimist": "*",
     "request": "~2.21",
     "sv": "*"

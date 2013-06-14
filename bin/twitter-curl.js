@@ -6,7 +6,7 @@ var querystring = require('querystring');
 var TimeoutDetector = require('../timeout');
 var tweet = require('../tweet');
 var sv = require('sv');
-var gzbz = require('gzbz/streaming');
+// var gzbz = require('gzbz/streaming');
 
 var argv = require('optimist').usage([
     'Usage: twitter-curl --query "track=bieber"',
