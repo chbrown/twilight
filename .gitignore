@@ -1,5 +1,6 @@
 .DS_Store
 twilight.egg-info/
 *.pyc
+dist/
 /log/
 /node_modules/

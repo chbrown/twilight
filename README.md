@@ -1,3 +1,7 @@
+# twitter-curl
+
+OAuth 1.0 Twitter Streaming API with improved error detection and timeouts.
+
 # Crawling quickstart
 
 Install from `npm`:
@@ -118,20 +122,30 @@ This format is not the default, and will be the output only when you use the `--
 Install [json](https://github.com/zpoley/json-command) first: `npm install json`. It's awesome.
 
     twitter-curl --query 'track=bootstrap' | json -C text
-    twitter-curl --query 'track=bootstrap' | json -C screenname,text
+    twitter-curl --query 'track=bootstrap' | json -C user.screen_name text
     twitter-curl --query 'track=انتخابات' | json -C text
+    twitter-curl --query 'track=sarcmark,%F0%9F%91%8F' | json -C text
 
-Or with plain AWK on TTV2:
+It supports unicode: انتخابات is the Arabic for "elections," and `decodeURIComponent('%F0%9F%91%8F')` is the ["CLAPPING HANDS" (U+1F44F)](http://www.fileformat.info/info/unicode/char/1f44f/index.htm) character.
+
+If you use a query with url-escaped characters in supervisord, note that it Python-interpolates strings, so you'll need to escape the percent signs, e.g.:
+
+    [program:slowclap]
+    command=twitter-curl --query "track=%%F0%%9F%%91%%8F" --file /tmp/slowclap.json
+
+### TTV2 Example
+
+Instead of JSON, you can use AWK to look at the TTV2:
 
     twitter-curl --query 'track=data,science' --ttv2 | awk 'BEGIN{FS="\t"}{print $4,$3}'
 
-### Stats
+## Stats
 
 * RSS usage per-process is between 20-40MB.
 * VSZ on a machine running six of these crawlers is 80-90MB.
 
 
-#### Other contents
+## Python contents vs. Javascript contents
 
     pip install -e git://github.com/chbrown/twilight.git#egg=twilight
 
