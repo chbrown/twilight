@@ -28,9 +28,13 @@ var argv = require('optimist').usage([
   .default({interval: 600, file: '-', accounts: '~/.twitter'}).argv;
 
 function die(exc) {
-  console.error(exc.toString());
   // more or less doing what it's told, but we exit with 1 so that supervisord will restart us
-  // console.error('EXIT 1');
+  if (argv.verbose) {
+    throw exc;
+  }
+  else {
+    console.error(exc.toString());
+  }
   process.exit(1);
 }
 

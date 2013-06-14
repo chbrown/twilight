@@ -66,7 +66,7 @@ def main():
         if empties > 5:
             break
 
-    stderrn('Done downloading %d tweets from %s.' % (sum(counts), screen_name))
+    stderrn('Done downloading %d tweets from %s' % (sum(counts), screen_name))
 
 
 if __name__ == '__main__':

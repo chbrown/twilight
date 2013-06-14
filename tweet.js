@@ -28,9 +28,17 @@ JSONStoTweet.prototype._chunk = function(chunk, encoding) {
   var obj;
   if (encoding == 'buffer' || encoding === undefined) encoding = 'utf8';
   var line = Buffer.isBuffer(chunk) ? chunk.toString(encoding) : chunk;
+
+  line = line.trim();
+  if (line.length === 0) {
+    // simply ignore empty lines
+    return;
+  }
+
   try {
     obj = JSON.parse(line);
   } catch (err) {
+    err.message += ' while trying to JSON.parse("' + line + '")';
     this.emit('error', err);
     return;
   }
