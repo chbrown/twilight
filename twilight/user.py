@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+import re
 import csv
 import sys
 import argparse
@@ -20,21 +21,24 @@ from twilight import stderrn
 
 def main():
     parser = argparse.ArgumentParser(description='Crawl all tweets from a given user.')
-    parser.add_argument('--output', default='-', help='output file (defaults to STDOUT)')
-    # parser.add_argument('--consumer_key', help='Twitter user to use to crawl')
-    # parser.add_argument('--password', help='Password for crawl connections.')
-    parser.add_argument('--screen_name', help='Twitter user to crawl')
+    parser.add_argument('screen_name', help='Twitter user to crawl')
+    parser.add_argument('output', nargs='?', default='-', help='output file (defaults to STDOUT)')
+    parser.add_argument('--accounts', default='~/.twitter', help='File to use for OAuth credentials')
     opts = parser.parse_args()
 
-    accounts = [row for row in csv.DictReader(open(os.path.expanduser('~/.twitter')))]
-    account = random.sample(accounts, 1)[0]
+    screen_name = opts.screen_name.replace('@', '')
+
+    account = None
+    accounts_filepath = re.sub('^~', os.environ['HOME'], opts.accounts)
+    with open(accounts_filepath) as accounts_fd:
+        accounts = [row for row in csv.DictReader(accounts_fd)]
+        account = random.sample(accounts, 1)[0]
     client = Twython(
         account['consumer_key'], account['consumer_secret'],
         account['access_token'], account['access_token_secret'])
 
-    # auth = (opts.username, opts.password)
     params = dict(
-        screen_name=opts.screen_name,
+        screen_name=screen_name,
         include_entities='true',
         contributor_details='true',
         include_rts='true',
@@ -62,7 +66,7 @@ def main():
         if empties > 5:
             break
 
-    stderrn('Done downloading %d tweets from %s.' % (sum(counts), opts.screen_name))
+    stderrn('Done downloading %d tweets from %s.' % (sum(counts), screen_name))
 
 
 if __name__ == '__main__':
