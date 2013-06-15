@@ -6,7 +6,8 @@ from twilight import stderr, stdout
 def main():
     parser = argparse.ArgumentParser(description='''
         Search ttv2 files for matches in a certain bounding box.
-        geogrep expects raw ttv2 on STDIN.''')
+        geogrep expects raw ttv2 on STDIN.''',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('north', type=float)
     parser.add_argument('east', type=float)
     parser.add_argument('south', type=float)

@@ -51,7 +51,8 @@ def readFile(filepath):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Aggregate metrics on Twitter crawls into redis')
+    parser = argparse.ArgumentParser(description='Aggregate metrics on Twitter crawls into redis',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument(
         '--files', default='/usr/local/data/twitter/*.ttv2.bz2', help='Glob of ttv2.bz2 files')
     parser.add_argument(

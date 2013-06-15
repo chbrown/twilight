@@ -20,9 +20,10 @@ from twilight import stderrn
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Crawl all tweets from a given user.')
+    parser = argparse.ArgumentParser(description='Crawl all tweets from a given user.',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('screen_name', help='Twitter user to crawl')
-    parser.add_argument('output', nargs='?', default='-', help='output file (defaults to STDOUT)')
+    parser.add_argument('output', nargs='?', default='-', help='output file')
     parser.add_argument('--accounts', default='~/.twitter', help='File to use for OAuth credentials')
     opts = parser.parse_args()
 

@@ -6,7 +6,8 @@ import ujson as json
 from twitter import map_stdin, stdout, stderr, Binner, TTV2, flatten_dict
 
 def main():
-    parser = argparse.ArgumentParser(description='Common Twitter Operations')
+    parser = argparse.ArgumentParser(description='Common Twitter Operations',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('op', type=str)
     parser.add_argument('--unit', type=str, help="Use with --op bin")
     parser.add_argument('--count', type=float, help="Use with --op bin")
