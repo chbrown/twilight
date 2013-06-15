@@ -149,6 +149,10 @@ Instead of JSON, you can use AWK to look at the TTV2:
 
     pip install -e git://github.com/chbrown/twilight.git#egg=twilight
 
+Or
+
+    pip install https://github.com/chbrown/twilight/tarball/master
+
 The Python and Javascript components are complementary.
 The Javascript offers crawlers, Python provides post-processing.
 

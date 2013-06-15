@@ -4,13 +4,14 @@ import json
 from os import path
 here = path.abspath(path.dirname(__file__))
 package = json.load(open(path.join(here, 'package.json')))
+name = str(package['name'])  # i.e., twilight
 
 setup(
-    name=str(package['name']),
+    name=name,
     version=str(package['version']),
     author='Christopher Brown',
     author_email='chrisbrown@utexas.edu',
-    packages=[package['name']],
+    packages=['twilight'],
     include_package_data=True,
     zip_safe=False,
     install_requires=[
