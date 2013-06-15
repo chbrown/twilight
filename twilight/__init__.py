@@ -41,6 +41,9 @@ def flatten_dict(d, prefix=None):
 class Tweet(object):
     translations = {ord('\t'): u' ', ord('\n'): u' ', ord('\r'): u''}
 
+    def __init__(self, values):
+        self.values = values
+
     @classmethod
     def parse_js_date(cls, s):
         return time.strptime(s, '%a %b %d %H:%M:%S +0000 %Y')
@@ -48,9 +51,6 @@ class Tweet(object):
     @classmethod
     def date_to_compact(cls, dt):
         return time.strftime('%Y%m%dT%H%M%S', dt)
-
-    def __init__(self, values):
-        self.values = values
 
     @classmethod
     def from_json(cls, tweet_json_string):

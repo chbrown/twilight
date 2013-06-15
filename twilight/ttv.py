@@ -1,7 +1,13 @@
 from twilight import Tweet
 
+
 class TTV1(Tweet):
-    cols = ['id_str', 'created_at', 'text', 'retweeted', 'retweet_count', 'coordinates', 'geo', 'user_id_str', 'user_created_at', 'user_screen_name', 'user_name', 'user_location', 'user_url', 'user_statuses_count', 'user_followers_count', 'user_friends_count', 'user_geo_enabled', 'user_time_zone', 'user_lang', 'user_utc_offset']
+    cols = [
+        'id_str', 'created_at', 'text', 'retweeted', 'retweet_count',
+        'coordinates', 'geo', 'user_id_str', 'user_created_at',
+        'user_screen_name', 'user_name', 'user_location', 'user_url',
+        'user_statuses_count', 'user_followers_count', 'user_friends_count',
+        'user_geo_enabled', 'user_time_zone', 'user_lang', 'user_utc_offset']
 
     @classmethod
     def parse_date(cls, s):
@@ -39,8 +45,10 @@ class TTV1(Tweet):
         )
         return cls(values)
 
+
 class TTV2(Tweet):
-    cols = ['id', 'created_at', 'text', 'coordinates', 'place_id', 'place_str',
+    cols = [
+        'id', 'created_at', 'text', 'coordinates', 'place_id', 'place_str',
         'in_reply_to_status_id', 'in_reply_to_screen_name', 'retweet_id',
         'retweet_count', 'user_screen_name', 'user_id', 'user_created_at',
         'user_name', 'user_description', 'user_location', 'user_url',
