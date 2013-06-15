@@ -1,4 +1,5 @@
 from setuptools import setup
+
 import json
 from os import path
 here = path.abspath(path.dirname(__file__))
@@ -13,8 +14,10 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        'pyshp',
+        'distribute',
         'psutil',
+        'pyshp',
+        'redis',
         'twython',
     ],
     entry_points={
@@ -23,6 +26,7 @@ setup(
             'tweetop = twilight.tweetop:main',
             'geogrep = twilight.geogrep:main',
             'twitter-user = twilight.user:main',
+            'twilight-aggregate = twilight.aggregate:main',
         ],
     },
 )
