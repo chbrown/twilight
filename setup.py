@@ -19,6 +19,7 @@ setup(
         'pyshp',
         'redis',
         'twython',
+        'ujson',
     ],
     entry_points={
         'console_scripts': [
