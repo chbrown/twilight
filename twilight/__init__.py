@@ -4,6 +4,12 @@ import time
 import subprocess
 import ujson as json  # ujson returns python None for json null
 
+try:
+    import pkg_resources
+    __version__ = pkg_resources.require("twilight")[0].version
+except Exception, exc:
+    __version__ = 'Unavailable: ' + str(exc)
+
 
 def stderr(s):
     sys.stderr.write(s)
