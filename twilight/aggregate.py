@@ -7,7 +7,41 @@ from twilight.ttv import TTV2
 import redis
 from twilight import stderr, stderrn
 
+
+class RedisBuffer(object):
+    _store = None
+
+    def __init__(self):
+        self._store = dict()
+
+    def incr(self, key):
+        self._store[key] = self._store.get(key, 0) + 1
+
+    def incrby(self, key, increment):
+        self._store[key] = self._store.get(key, 0) + increment
+
+    def hincr(self, key, field, increment):
+        if key not in self._store:
+            self._store[key] = dict()
+        self._store[key][field] = self._store[key].get(field, 0) + 1
+
+    def hincrby(self, key, field, increment):
+        if key not in self._store:
+            self._store[key] = dict()
+        self._store[key][field] = self._store[key].get(field, 0) + increment
+
+    def flush(self, redis_client):
+        for key, value in self._store.items():
+            if isinstance(value, dict):
+                for field, subvalue in value.items():
+                    redis_client.hincrby(key, field, subvalue)
+            else:
+                redis_client.incrby(key, value)
+        # reset it:
+        self._store = dict()
+
 r = None
+redis_buffer = RedisBuffer()
 
 ''' Database:
 
@@ -30,10 +64,10 @@ def readLine(line, named_prefix):
     dated_prefix = named_prefix + ':' + tweet.get('created_at')[:11]
 
     for prefix in [named_prefix, dated_prefix]:
-        r.incr(prefix)
+        redis_buffer.incr(prefix)
         if tweet.get('text').startswith('RT'):
-            r.incr('{prefix}/rt'.format(prefix=prefix))
-        r.hincrby('{prefix}/lang'.format(prefix=prefix), tweet.get('user_lang'), 1)
+            redis_buffer.incr('{prefix}/rt'.format(prefix=prefix))
+        redis_buffer.hincrby('{prefix}/lang'.format(prefix=prefix), tweet.get('user_lang'), 1)
 
 
 def readFile(filepath):
@@ -84,6 +118,7 @@ def main():
         if novel:
             try:
                 readFile(ttv2_filepath)
+                redis_buffer.flush(r)
             except KeyboardInterrupt, exc:
                 stderrn()
                 stderrn('Ctrl+C KeyboardInterrupt: your counts will be partial')
