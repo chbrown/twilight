@@ -2,7 +2,10 @@
 import sys
 import time
 import subprocess
-import ujson as json  # ujson returns python None for json null
+try:
+    import ujson as json  # ujson returns python None for json null
+except ImportError:
+    import json
 
 try:
     import pkg_resources

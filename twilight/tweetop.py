@@ -2,8 +2,7 @@
 import re
 import sys
 import argparse
-import ujson as json
-from twitter import map_stdin, stdout, stderr, Binner, TTV2, flatten_dict
+from twitter import json, map_stdin, stdout, stderr, Binner, TTV2, flatten_dict
 
 def main():
     parser = argparse.ArgumentParser(description='Common Twitter Operations',
