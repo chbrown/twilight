@@ -90,7 +90,7 @@ JSONStoTweet.prototype._chunk = function(chunk, encoding) {
     in_reply_to_screen_name: obj.in_reply_to_screen_name,
     retweet_id: (obj.retweeted_status || {}).id_str,
     retweet_count: obj.retweet_count,
-    user_screen_name: obj.screen_name,
+    user_screen_name: user.screen_name,
     user_id: user.id_str,
     user_created_at: compactDate(user.created_at),
     user_name: clean(user.name),
