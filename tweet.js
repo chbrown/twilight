@@ -1,4 +1,5 @@
 'use strict'; /*jslint node: true, es5: true, indent: 2 */
+var sv = require('sv');
 var util = require('util');
 var stream = require('stream');
 var Rechunker = require('./rechunker');
@@ -104,6 +105,23 @@ JSONStoTweet.prototype._chunk = function(chunk, encoding) {
     user_default_profile: user.default_profile ? 'T' : 'F',
     user_time_zone: user.time_zone,
     user_lang: user.lang,
-    user_utc_offset: user.utc_offset
+    user_utc_offset: user.utc_offset,
   });
 };
+
+var TweetToTTV2 = exports.TweetToTTV2 = function() {
+  // converts tweet objects to tab separated format (specifically, TTV2)
+  sv.Stringifier.call(this, {
+    columns: ['id', 'created_at', 'text', 'coordinates', 'place_id', 'place_str',
+      'in_reply_to_status_id', 'in_reply_to_screen_name', 'retweet_id',
+      'retweet_count', 'user_screen_name', 'user_id', 'user_created_at',
+      'user_name', 'user_description', 'user_location', 'user_url',
+      'user_statuses_count', 'user_followers_count', 'user_friends_count',
+      'user_favourites_count', 'user_geo_enabled', 'user_default_profile',
+      'user_time_zone', 'user_lang', 'user_utc_offset'],
+    encoding: 'utf8',
+    missing: '',
+    delimiter: '\t',
+  });
+};
+util.inherits(TweetToTTV2, sv.Stringifier);
