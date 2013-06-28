@@ -9,33 +9,32 @@ var sv = require('sv');
 // var gzbz = require('gzbz/streaming');
 
 var argv = require('optimist').usage([
-    'Usage: twitter-curl --query "track=bieber"',
+    'Usage: twitter-curl --filter "track=bieber"',
     '',
-    ' --accounts [FILE]   filepath of twitter oauth csv (defaults to ~/.twitter)',
-    ' --query [PASSWORD]  twitter API query',
-    ' --file [-]          output target, defaults to STDOUT',
-    ' --interval [600]    how long to wait before dying from boredom, in seconds',
-    ' --timeout [NEVER]   die after NEVER seconds no matter what',
-    ' --ttv2              convert to TTV2 (json by default)'
+    ' --accounts ~/.twitter  filepath of twitter oauth csv',
+    ' --filter "track=lmao"  twitter API query',
+    ' --file -               output target (- means STDOUT)',
+    ' --interval 600         die after a silence of 10 minutes',
+    ' --timeout 21600        die after 6 hours, no matter what (defaults to never)',
+    ' --ttv2                 convert to TTV2 (defaults to false, meaning JSON)',
+    ' --verbose              print setup config',
   ].join('\n'))
+  .alias({v: 'verbose'})
   .boolean(['ttv2', 'verbose'])
-  .demand(['query'])
-  .alias({
-    u: 'user', username: 'user', screenname: 'user',
-    p: 'pass', pw: 'pass', password: 'pass',
-    v: 'verbose',
-  })
-  .default({interval: 600, file: '-', accounts: '~/.twitter'}).argv;
+  .default({
+    interval: 600,
+    file: '-',
+    accounts: '~/.twitter'
+  }).argv;
 
 function die(exc) {
-  // more or less doing what it's told, but we exit with 1 so that supervisord will restart us
+  // more or less doing what it's told
+  // but we exit with 1 so that supervisord will restart us
   if (argv.verbose) {
-    throw exc;
-  }
-  else {
     console.error(exc.toString());
   }
-  process.exit(1);
+  throw exc;
+  // process.exit(1);
 }
 
 if (argv.timeout) {
@@ -45,56 +44,17 @@ if (argv.timeout) {
 }
 
 // pipeline works like:
-// # curl | timeout detector | split on newlines and normalize tweet | ttv2 | [bzip2] | file / stdout
-
-// 2. timeout: ensure we get something every x seconds.
-var timeout_detector = new TimeoutDetector({timeout: argv.interval}); // timeout takes seconds
-timeout_detector.on('error', die);
-
-// 3. tweet consolidator -- handles the Buffer->utf8 conversion
-var jsons_to_tweet = new tweet.JSONStoTweet();
-jsons_to_tweet.on('error', die);
-
-// 4. ttv2 flattener
-var columns = ['id', 'created_at', 'text', 'coordinates', 'place_id', 'place_str',
-    'in_reply_to_status_id', 'in_reply_to_screen_name', 'retweet_id',
-    'retweet_count', 'user_screen_name', 'user_id', 'user_created_at',
-    'user_name', 'user_description', 'user_location', 'user_url',
-    'user_statuses_count', 'user_followers_count', 'user_friends_count',
-    'user_favourites_count', 'user_geo_enabled', 'user_default_profile',
-    'user_time_zone', 'user_lang', 'user_utc_offset'];
-var tweet_to_ttv2 = new sv.Stringifier({
-  columns: columns,
-  encoding: 'utf8',
-  missing: '',
-  delimiter: '\t'
-});
-tweet_to_ttv2.on('error', die);
-
-// 5. bzip2 deflater
-// var bzip_stream = new gzbz.BzipDeflater({encoding: 'utf8', level: 9});
-// bzip_stream.on('error', die);
-
-// 6. destination (STDOUT / file)
-var destination = process.stdout;
-if (argv.file != '-') {
-  var timestamp = new Date().toISOString().replace(/:/g, '-').replace(/\..+/, '');
-  var filepath = argv.file.replace(/TIMESTAMP/, timestamp);
-  destination = fs.createWriteStream(filepath, {flags: 'a', encoding: null, mode: '0664'});
-}
-destination.on('error', die);
-
-
-// 1. curl
-var account_csv_filepath = argv.accounts.replace(/^~/, process.env.HOME);
-var account_csv_stream = fs.createReadStream(account_csv_filepath, {encoding: 'utf8'});
-
-// get twitter accounts
-var accounts = [];
-account_csv_stream.pipe(new sv.Parser())
-.on('data', function(account) { accounts.push(account); })
-.on('end', function() {
+// prereq 1: get account info
+// prereq 2: hard reset timeout (optional)
+// curl | timeout detector | split on newlines and normalize tweet | ttv2 | file / stdout
+sv.Parser.readToEnd(argv.accounts, {encoding: 'utf8'}, function(err, accounts) {
   var account = accounts[Math.random() * accounts.length | 0];
+  // e.g., account = {
+  //   screen_name: 'leoparder',
+  //   consumer_key: 'ziurk0AOdn71U63Yp9EG4',
+  //   consumer_secret: 'VKmTsGrk2JjH4qcYFpaAX5iEDthoW7ZyeU03NxPS1ld',
+  //   access_token: '915051675-bCH2SYP6Ok9epWwnu7A0DhrlIQBMUaoLtxVzfRG5',
+  //   access_token_secret: 'VcLOIzA0mkiCSbUYDWrNv3n86EXJa4HQKMgqfd7' }
   var oauth = {
     consumer_key: account.consumer_key,
     consumer_secret: account.consumer_secret,
@@ -103,41 +63,59 @@ account_csv_stream.pipe(new sv.Parser())
   };
 
   if (argv.verbose) {
-    console.error('Using Twitter account: ' + JSON.stringify(account));
     console.error('Using OAuth: ' + JSON.stringify(oauth));
   }
-  // e.g., account = {
-  //   screen_name: 'leoparder',
-  //   consumer_key: 'ziurk0AOdn71U63Yp9EG4',
-  //   consumer_secret: 'VKmTsGrk2JjH4qcYFpaAX5iEDthoW7ZyeU03NxPS1ld',
-  //   access_token: '915051675-bCH2SYP6Ok9epWwnu7A0DhrlIQBMUaoLtxVzfRG5',
-  //   access_token_secret: 'VcLOIzA0mkiCSbUYDWrNv3n86EXJa4HQKMgqfd7' }
-  var form = querystring.parse(argv.query);
-  form.stall_warnings = true;
-  var request_stream = request.post({
-    url: 'https://stream.twitter.com/1.1/statuses/filter.json',
-    form: form,
-    oauth: {
-      consumer_key: account.consumer_key,
-      consumer_secret: account.consumer_secret,
-      token: account.access_token,
-      token_secret: account.access_token_secret,
-    }
-  });
-  request_stream.on('error', die);
-  request_stream.on('response', function(response) {
+
+  // 1a. http request
+  var outlet;
+  if (argv.filter) {
+    var form = querystring.parse(argv.filter);
+    form.stall_warnings = true;
+    outlet = request.post('https://stream.twitter.com/1.1/statuses/filter.json', {form: form, oauth: oauth});
+  }
+  else {
+    outlet = request.get('https://stream.twitter.com/1.1/statuses/sample.json', {oauth: oauth});
+  }
+
+  // 1b. http response
+  outlet.on('response', function(response) {
     if (response.statusCode != 200) {
       response.on('end', function() {
         die(new Error('HTTP Error ' + response.statusCode));
       }).pipe(process.stderr);
     }
-  });
+  }).on('error', die);
 
-  // # hook it all together
-  var outlet = request_stream.pipe(timeout_detector);
+  // 2. timeout: ensure we get something every x seconds.
+  var timeout_detector = new TimeoutDetector({timeout: argv.interval}); // timeout takes seconds
+  timeout_detector.on('error', die);
+  outlet = outlet.pipe(timeout_detector);
+
   if (argv.ttv2) {
-    outlet = outlet.pipe(jsons_to_tweet).pipe(tweet_to_ttv2);
+    // 3. tweet consolidator -- handles the Buffer->utf8 conversion
+    var jsons_to_tweet = new tweet.JSONStoTweet();
+    jsons_to_tweet.on('error', die);
+    outlet = outlet.pipe(jsons_to_tweet);
+    // 4. ttv2 flattener
+    var tweet_to_ttv2 = new tweet.TweetToTTV2();
+    tweet_to_ttv2.on('error', die);
+    outlet = outlet.pipe(tweet_to_ttv2);
   }
+
+  // 5. bzip2 deflater
+  // var bzip_stream = new gzbz.BzipDeflater({encoding: 'utf8', level: 9});
+  // bzip_stream.on('error', die);
   // outlet = outlet.pipe(bzip_stream)
-  outlet.pipe(destination);
-});
+
+  if (argv.file == '-') {
+    // 6a. destination STDOUT
+    process.stdout.on('error', die);
+    outlet = outlet.pipe(process.stdout);
+  }
+  else {
+    // 6b. destination file
+    var timestamp = new Date().toISOString().replace(/:/g, '-').replace(/\..+/, '');
+    var filepath = argv.file.replace(/TIMESTAMP/, timestamp);
+    outlet = outlet.pipe(fs.createWriteStream(filepath, {flags: 'a', mode: '0664'}));
+  }
+}).on('error', die);
