@@ -8,7 +8,7 @@ var tweet = require('../tweet');
 var sv = require('sv');
 // var gzbz = require('gzbz/streaming');
 
-var argv = require('optimist').usage([
+var optimist = require('optimist').usage([
     'Usage: twitter-curl --filter "track=bieber"',
     '',
     ' --accounts ~/.twitter  filepath of twitter oauth csv',
@@ -20,12 +20,18 @@ var argv = require('optimist').usage([
     ' --verbose              print setup config',
   ].join('\n'))
   .alias({v: 'verbose'})
-  .boolean(['ttv2', 'verbose'])
+  .boolean(['help', 'ttv2', 'verbose'])
   .default({
     interval: 600,
     file: '-',
     accounts: '~/.twitter'
-  }).argv;
+  });
+
+var argv = optimist.argv;
+if (argv.help) {
+  optimist.showHelp();
+  process.exit(1);
+}
 
 function die(exc) {
   // more or less doing what it's told
