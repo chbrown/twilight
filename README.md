@@ -1,6 +1,18 @@
-# twitter-curl
+# twilight
 
-OAuth 1.0 Twitter Streaming API with improved error detection and timeouts.
+Tools for accessing the [Twitter API v1.1](https://dev.twitter.com/docs/api/1.1/overview) with paranoid timeouts and de-pagination.
+
+Node.js
+
+* `twitter-curl` for querying the streaming API (`/sample.json` and `/filter.json`).
+* `rtcount` for pulling out the retweets from a stream of JSON tweets, and counting them.
+
+Python
+
+* `json2ttv2` converts directories full of Twitter `.json` files into `.ttv2` files,
+  bzip2'ing them, and ensuring that the result is within a reasonable size of the source (greater than 2%, but less than 6%) before deleting the original json.
+* `twitter-user` pulls down the ~3,200 (max) tweets that are accessible for a given user
+  (also depends on the `~/.twitter` auth file).
 
 # Crawling quickstart
 
@@ -8,20 +20,21 @@ Install from `npm`:
 
     npm install -g twilight
 
-Or github (to make sure you're getting the latest):
+Or github (to make sure you're getting the most up-to-date version):
 
     npm install -g git://github.com/chbrown/twilight
 
 ## Authenticate
 
-As of 11 June 2013, [basic HTTP authentication is disabled](https://dev.twitter.com/docs/faq#17750)
+This app uses only OAuth 1.0A, which is mandatory. As of June 11, 2013,
+[basic HTTP authentication is disabled](https://dev.twitter.com/docs/faq#17750)
 in the Twitter Streaming API. So get some OAuth credentials together [real quick](https://github.com/chbrown/autoauth) and make a csv file that looks like this:
 
 | consumer_key | consumer_secret | access_token | access_token_secret |
-|--------------|-----------------|-------------|--------------------|
-| ziurk0An7... | VKmTsGrk2JjH... | 91505165... | VcLOIzA0mkiCSbU... |
-| 63Yp9EG4t... | DhrlIQBMUaoL... | 91401882... | XJa4HQKMgqfd7ee... |
-| ...          | ...             | ...         | ...                |
+|--------------|-----------------|--------------|---------------------|
+| ziurk0An7... | VKmTsGrk2JjH... | 91505165...  | VcLOIzA0mkiCSbU...  |
+| 63Yp9EG4t... | DhrlIQBMUaoL... | 91401882...  | XJa4HQKMgqfd7ee...  |
+| ...          | ...             | ...          | ...                 |
 
 There **must** be a header line with _exactly_ the following values:
 
@@ -55,14 +68,16 @@ command=twitter-curl
 * `--accounts` should point to a file with OAuth Twitter account credentials.
   Currently, the script will simply use a random row from this file.
 * `--query` can be any `track=whatever` or `locations=-18,14,68,44` etc. A
-  querystring parsable string.
+  querystring parsable string. If no query is specified, it will use the spritzer
 * `--file` shouldn't require creating any directions, and the TIMESTAMP bit
   will be replaced by a filesystem-friendly iso representation of whenever
   the program is started.
 
-      // Specifically:
-      var stamp = new Date().toISOString().replace(/:/g, '-').replace(/\..+/, '');
-      // stamp == '2013-06-07T15-47-49'
+```javascript
+// Specifically:
+var stamp = new Date().toISOString().replace(/:/g, '-').replace(/\..+/, '');
+// stamp == '2013-06-07T15-47-49'
+```
 
 * `--timeout` (seconds) the program will die with error code 1 after this
    amount of time. Don't specify a timeout if you don't want this.
@@ -126,7 +141,8 @@ Install [json](https://github.com/zpoley/json-command) first: `npm install json`
     twitter-curl --query 'track=انتخابات' | json -C text
     twitter-curl --query 'track=sarcmark,%F0%9F%91%8F' | json -C text
 
-It supports unicode: انتخابات is the Arabic for "elections," and `decodeURIComponent('%F0%9F%91%8F')` is the ["CLAPPING HANDS" (U+1F44F)](http://www.fileformat.info/info/unicode/char/1f44f/index.htm) character.
+It supports unicode: انتخابات is the Arabic for "elections," and `decodeURIComponent('%F0%9F%91%8F')`
+is the ["CLAPPING HANDS" (U+1F44F)](http://www.fileformat.info/info/unicode/char/1f44f/index.htm) character.
 
 If you use a query with url-escaped characters in supervisord, note that it Python-interpolates strings, so you'll need to escape the percent signs, e.g.:
 
