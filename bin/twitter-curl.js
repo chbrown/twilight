@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict'; /*jslint es5: true, node: true */
 var fs = require('fs');
+var path = require('path');
 var request = require('request');
 var querystring = require('querystring');
 var TimeoutDetector = require('../timeout');
@@ -17,20 +18,31 @@ var optimist = require('optimist').usage([
     ' --interval 600         die after a silence of 10 minutes',
     ' --timeout 21600        die after 6 hours, no matter what (defaults to never)',
     ' --ttv2                 convert to TTV2 (defaults to false, meaning JSON)',
-    ' --verbose              print setup config',
+    ' --verbose (-v)         print setup config',
+    ' --version              print twilight version',
   ].join('\n'))
   .alias({v: 'verbose'})
-  .boolean(['help', 'ttv2', 'verbose'])
+  .boolean(['help', 'ttv2', 'verbose', 'version'])
   .default({
     interval: 600,
     file: '-',
-    accounts: '~/.twitter'
+    accounts: '~/.twitter',
   });
 
 var argv = optimist.argv;
 if (argv.help) {
   optimist.showHelp();
   process.exit(1);
+}
+
+if (argv.version) {
+  // optimist.showHelp();
+  var package_json_path = path.join(__dirname, '../package.json');
+  fs.readFile(package_json_path, 'utf8', function(err, data) {
+    var obj = JSON.parse(data);
+    console.log(obj.version);
+    process.exit(0);
+  });
 }
 
 function die(exc) {
