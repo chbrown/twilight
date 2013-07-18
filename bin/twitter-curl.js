@@ -45,6 +45,13 @@ if (argv.version) {
   });
 }
 
+if (argv.query) {
+  optimist.showHelp();
+  console.error('Deprecation error:');
+  console.error('  --query is no longer supported and I am throwing this exception for my own good.');
+  process.exit(1);
+}
+
 function die(exc) {
   // more or less doing what it's told
   // but we exit with 1 so that supervisord will restart us

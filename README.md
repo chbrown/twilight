@@ -56,7 +56,7 @@ but you can specify a different path with the `--accounts` command line argument
 [program:justinnnnnn]
 user=chbrown
 command=twitter-curl
-    --query "track=loveyabiebs,belieber,bietastrophe"
+    --filter "track=loveyabiebs,belieber,bietastrophe"
     --file /usr/local/data/twitter/justin_TIMESTAMP.json
     --timeout 86400
     --interval 3600
@@ -67,8 +67,9 @@ command=twitter-curl
 
 * `--accounts` should point to a file with OAuth Twitter account credentials.
   Currently, the script will simply use a random row from this file.
-* `--query` can be any `track=whatever` or `locations=-18,14,68,44` etc. A
-  querystring parsable string. If no query is specified, it will use the spritzer
+* `--filter` can be any `track=whatever` or `locations=-18,14,68,44` etc. A
+  querystring parsable string. If no filter is specified, it will use the
+  spritzer at `/sample.json`
 * `--file` shouldn't require creating any directions, and the TIMESTAMP bit
   will be replaced by a filesystem-friendly iso representation of whenever
   the program is started.
@@ -136,24 +137,25 @@ This format is not the default, and will be the output only when you use the `--
 
 Install [json](https://github.com/zpoley/json-command) first: `npm install json`. It's awesome.
 
-    twitter-curl --query 'track=bootstrap' | json -C text
-    twitter-curl --query 'track=bootstrap' | json -C user.screen_name text
-    twitter-curl --query 'track=انتخابات' | json -C text
-    twitter-curl --query 'track=sarcmark,%F0%9F%91%8F' | json -C text
+    twitter-curl --filter 'track=bootstrap' | json -C text
+    twitter-curl --filter 'track=bootstrap' | json -C user.screen_name text
+    twitter-curl --filter 'track=انتخابات' | json -C text
+    twitter-curl --filter 'track=sarcmark,%F0%9F%91%8F' | json -C text
 
 It supports unicode: انتخابات is the Arabic for "elections," and `decodeURIComponent('%F0%9F%91%8F')`
 is the ["CLAPPING HANDS" (U+1F44F)](http://www.fileformat.info/info/unicode/char/1f44f/index.htm) character.
 
-If you use a query with url-escaped characters in supervisord, note that it Python-interpolates strings, so you'll need to escape the percent signs, e.g.:
+If you use a filter with url-escaped characters in supervisord, note that
+supervisord Python-interpolates strings, so you'll need to escape the percent signs, e.g.:
 
     [program:slowclap]
-    command=twitter-curl --query "track=%%F0%%9F%%91%%8F" --file /tmp/slowclap.json
+    command=twitter-curl --filter "track=%%F0%%9F%%91%%8F" --file /tmp/slowclap.json
 
 ### TTV2 Example
 
 Instead of JSON, you can use AWK to look at the TTV2:
 
-    twitter-curl --query 'track=data,science' --ttv2 | awk 'BEGIN{FS="\t"}{print $4,$3}'
+    twitter-curl --filter 'track=data,science' --ttv2 | awk 'BEGIN{FS="\t"}{print $4,$3}'
 
 ## Stats
 
