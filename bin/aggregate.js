@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-'use strict'; /*jslint node: true, indent: 2, es5: true */
+'use strict'; /*jslint es5: true, node: true, indent: 2 */
 var child_process = require('child_process');
 var os = require('os');
 var stream = require('stream');
@@ -121,41 +121,8 @@ glob('/usr/local/data/twitter/*.ttv2.bz2', function(err, ttv2_filepaths) {
         callback();
       }
     });
-    // except KeyboardInterrupt, exc:
-    //     stderrn()
-    //     stderrn('Ctrl+C KeyboardInterrupt: your counts will be partial')
-    //     exit(130)  # Ctrl+C exit code
-    // except Exception, exc:
-    //     stderrn()
-    //     stderrn(ttv2_filename + ' failed: ' + str(exc))
-    //     r.sadd('twitteragg:failed', ttv2_filename)
   }, function(err) {
     if (err) console.error(err);
     process.exit();
   });
 });
-
-
-
-
-
-    // parser = argparse.ArgumentParser(description='Aggregate metrics on Twitter crawls into redis',
-    //     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    // parser.add_argument(
-    //     '--host', default='127.0.0.1', help='Redis server host')
-    // opts = parser.parse_args()
-
-    // try:
-    //     # if ping takes longer than 100ms, we die
-    //     impatient_r = redis.StrictRedis(host=opts.host, socket_timeout=0.1)
-    //     impatient_r.ping()
-    // except redis.ConnectionError, error:
-    //     stderrn(error)
-    //     exit(1)
-
-    // r = redis.StrictRedis(host=opts.host, socket_timeout=1)
-    // keys = len(r.keys('twitteragg:*'))
-    // stderrn('Established Redis connection. {keys} twitteragg:* keys.'.format(keys=keys))
-
-    // for ttv2_filepath in glob(opts.files):
-    //     ttv2_filename = os.path.basename(ttv2_filepath)

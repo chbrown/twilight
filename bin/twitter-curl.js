@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-'use strict'; /*jslint es5: true, node: true */
+'use strict'; /*jslint es5: true, node: true, indent: 2 */
 var fs = require('fs');
 var logger = require('winston');
 var path = require('path');

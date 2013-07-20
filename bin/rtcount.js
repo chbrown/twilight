@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+'use strict'; /*jslint es5: true, node: true, indent: 2 */
 var util = require('util');
 var Rechunker = require('../rechunker');
 
