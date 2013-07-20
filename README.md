@@ -68,7 +68,7 @@ command=twitter-curl
 * `--accounts` should point to a file with OAuth Twitter account credentials.
   Currently, the script will simply use a random row from this file.
 * `--filter` can be any `track=whatever` or `locations=-18,14,68,44` etc. A
-  querystring parsable string. If no filter is specified, it will use the
+  `querystring`-parsable string. If no filter is specified, it will use the
   spritzer at `/sample.json`
 * `--file` shouldn't require creating any directions, and the TIMESTAMP bit
   will be replaced by a filesystem-friendly iso representation of whenever
