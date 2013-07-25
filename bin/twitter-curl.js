@@ -59,14 +59,14 @@ function start(argv) {
     if (err) die(err);
 
     // 3a. http request
-    var outlet;
-    if (argv.filter) {
-      var form = querystring.parse(argv.filter);
-      outlet = request.post(api_root + '/statuses/filter.json', {form: form, oauth: oauth});
-    }
-    else {
-      outlet = request.get(api_root + '/statuses/sample.json', {oauth: oauth});
-    }
+    var request_opts = {
+      url: api_root + '/statuses/' + (argv.filter ? 'filter.json' : 'sample.json'),
+      method: argv.filter ? 'POST' : 'GET',
+      form: argv.filter ? querystring.parse(argv.filter) : null,
+      oauth: oauth,
+    };
+    logger.debug(request_opts.method + ' ' + request_opts.url);
+    var outlet = request(request_opts);
 
     // 3b. http response
     outlet.on('response', function(response) {
