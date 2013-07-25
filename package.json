@@ -14,8 +14,10 @@
     "url": "http://github.com/chbrown/twilight.git"
   },
   "bin": {
-    "twitter-curl": "./bin/twitter-curl.js",
-    "rtcount": "./bin/rtcount.js"
+    "twitter-aggregate": "bin/twitter-aggregate.js",
+    "twitter-rest": "bin/twitter-rest.js",
+    "twitter-curl": "bin/twitter-curl.js",
+    "twitter-rtcount": "bin/twitter-rtcount.js"
   },
   "author": "Christopher Brown <io@henrian.com> (http://henrian.com)",
   "license": "MIT",
@@ -25,5 +27,11 @@
     "request": "*",
     "sv": "*",
     "winston": "*"
+  },
+  "devDependencies": {
+    "tap": "*"
+  },
+  "scripts": {
+    "test": "tap test"
   }
 }
