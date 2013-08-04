@@ -11,7 +11,7 @@ var stream = require('stream');
 var util = require('util');
 var zlib = require('zlib');
 
-var LineStream = module.exports = function() {
+var LineStream = function() {
   stream.Transform.call(this, {decodeStrings: true});
   this._writableState.objectMode = false;
   this._readableState.objectMode = true;
