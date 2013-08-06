@@ -2,12 +2,10 @@
 'use strict'; /*jslint es5: true, node: true, indent: 2 */
 var child_process = require('child_process');
 var os = require('os');
-var stream = require('stream');
-var util = require('util');
 var async = require('async');
 var path = require('path');
 var glob = require('glob');
-var Rechunker = require('../rechunker');
+var streaming = require('streaming');
 var redis = require('redis');
 
 
@@ -65,12 +63,14 @@ function readFile(filepath, r, callback) {
   process.stderr.write('         ' + filename);
   var nrows = 0;
 
-  var rechunker = new Rechunker();
-  rechunker.on('end', function() {
+  child_process.spawn('bzcat', [filepath], {
+    stdio: ['ignore', 'pipe', process.stderr]
+  }).stdout.pipe(new streaming.Line())
+  .on('end', function() {
     console.error('\r' + nrows + '\n');
     callback();
-  });
-  rechunker.on('data', function(chunk) {
+  })
+  .on('data', function(chunk) {
     var line = Buffer.isBuffer(chunk) ? chunk.toString('utf8') : chunk;
     nrows++;
 
@@ -97,10 +97,6 @@ function readFile(filepath, r, callback) {
       process.stderr.write('\r' + nrows);
     }
   });
-
-  child_process.spawn('bzcat', [filepath], {
-    stdio: ['ignore', 'pipe', process.stderr]
-  }).stdout.pipe(rechunker);
 }
 
 var r = redis.createClient();

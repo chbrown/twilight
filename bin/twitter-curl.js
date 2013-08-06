@@ -6,7 +6,7 @@ var path = require('path');
 var querystring = require('querystring');
 var request = require('request');
 
-var TimeoutDetector = require('../timeout');
+var Timeout = require('streaming').Timeout;
 var twilight = require('../index');
 var tweet = require('../tweet');
 
@@ -64,7 +64,7 @@ var curl = exports.curl = function(opts, callback) {
       // .on('error', shutdown);
 
       // 4. timeout: ensure we get something every x seconds.
-      var timeout_detector = new TimeoutDetector({timeout: opts.interval}); // timeout takes seconds
+      var timeout_detector = new Timeout(opts.interval); // timeout takes seconds
       // timeout_detector.on('error', shutdown);
       output = output.pipe(timeout_detector);
 
@@ -115,11 +115,7 @@ function main() {
     full.showHelp();
   }
   else if (argv.version) {
-    var package_json_path = path.join(__dirname, '../package.json');
-    fs.readFile(package_json_path, 'utf8', function(err, data) {
-      var obj = JSON.parse(data);
-      console.log(obj.version);
-    });
+    console.log(require('../package').version);
   }
   else if (argv.query) {
     full.showHelp();

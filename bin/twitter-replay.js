@@ -8,43 +8,9 @@ var http = require('http');
 var logger = require('winston');
 var path = require('path');
 var stream = require('stream');
+var streaming = require('streaming');
 var util = require('util');
 var zlib = require('zlib');
-
-var LineStream = function() {
-  stream.Transform.call(this, {decodeStrings: true});
-  this._writableState.objectMode = false;
-  this._readableState.objectMode = true;
-};
-util.inherits(LineStream, stream.Transform);
-LineStream.prototype._chunk = function(buffer, encoding) {
-  if (encoding == 'buffer' || encoding === undefined) encoding = 'utf8';
-  var chunk = buffer.toString(encoding);
-  this.push(chunk);
-};
-LineStream.prototype._transform = function(chunk, encoding, callback) {
-  // assert encoding == 'buffer'
-  var buffer = (this._buffer && this._buffer.length) ? Buffer.concat([this._buffer, chunk]) : chunk;
-  var start = 0;
-  var end = buffer.length;
-  for (var i = 0; i < end; i++) {
-    if (buffer[i] === 13 || buffer[i] === 10) {
-      this._chunk(buffer.slice(start, i), encoding);
-      if (buffer[i] === 13 && buffer[i + 1] === 10) { // '\r\n'
-        i++;
-      }
-      start = i + 1;
-    }
-  }
-  this._buffer = buffer.slice(start);
-  callback();
-};
-LineStream.prototype._flush = function(callback) {
-  if (this._buffer && this._buffer.length) {
-    this._chunk(this._buffer);
-  }
-  callback();
-};
 
 function now() { return (new Date()).getTime(); }
 
@@ -77,7 +43,7 @@ TwitterReplayer.prototype.play = function() {
   if (file.match(/\.gz$/)) {
     file_stream = file_stream.pipe(zlib.createGunzip());
   }
-  var line_stream = file_stream.pipe(new LineStream());
+  var line_stream = file_stream.pipe(new streaming.Line());
 
   // we don't want to keep the file or line stream open outside this function
   // so we send in callbacks to different methods of the stream.
@@ -218,11 +184,7 @@ function main() {
     full.showHelp();
   }
   else if (argv.version) {
-    var package_json_path = path.join(__dirname, '../package.json');
-    fs.readFile(package_json_path, 'utf8', function(err, data) {
-      var obj = JSON.parse(data);
-      console.log(obj.version);
-    });
+    console.log(require('../package').version);
   }
   else {
     // > Note, that since [async.map] applies the iterator to each item in

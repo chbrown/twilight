@@ -1,8 +1,7 @@
 'use strict'; /*jslint node: true, es5: true, indent: 2 */
 var sv = require('sv');
 var util = require('util');
-var stream = require('stream');
-var Rechunker = require('./rechunker');
+var Splitter = require('streaming').Splitter;
 
 function clean(s) {
   return (s === undefined || s === null) ? s : s.replace(/[\t\n\r]/g, ' ');
@@ -21,10 +20,9 @@ function compactDate(dt) {
 
 var JSONStoTweet = exports.JSONStoTweet = function() {
   // converts json strings to objects
-  Rechunker.call(this, {objectMode: true});
+  Splitter.call(this, '\n', {objectMode: true});
 };
-util.inherits(JSONStoTweet, Rechunker);
-
+util.inherits(JSONStoTweet, Splitter);
 JSONStoTweet.prototype._chunk = function(chunk, encoding) {
   var obj;
   if (encoding == 'buffer' || encoding === undefined) encoding = 'utf8';

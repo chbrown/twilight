@@ -5,8 +5,6 @@ var request = require('request');
 var sv = require('sv');
 var util = require('util');
 
-var Rechunker = require('./rechunker');
-
 var getOAuth = exports.getOAuth = function(filepath, callback) {
   // callback signature: function(err, oauth_object)
   sv.Parser.readToEnd(filepath, {encoding: 'utf8'}, function(err, accounts) {
@@ -49,17 +47,4 @@ exports.requestResponse = function(opts, callback) {
       callback(null, res);
     }
   }).on('error', callback);
-};
-
-var JSONPrettifier = exports.JSONPrettifier = function() {
-  // converts json strings to formatted json strings
-  Rechunker.call(this, {objectMode: false});
-};
-// Rechunker inherits from stream.Transform
-util.inherits(JSONPrettifier, Rechunker);
-JSONPrettifier.prototype._chunk = function(chunk, encoding) {
-  if (encoding == 'buffer' || encoding === undefined) encoding = 'utf8';
-  var line = Buffer.isBuffer(chunk) ? chunk.toString(encoding) : chunk;
-  var obj = JSON.parse(line);
-  this.push(JSON.stringify(obj, null, '  ') + '\n');
 };

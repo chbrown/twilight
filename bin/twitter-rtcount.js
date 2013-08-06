@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 'use strict'; /*jslint es5: true, node: true, indent: 2 */
-var util = require('util');
-var Rechunker = require('../rechunker');
+var streaming = require('streaming');
 
 // Usage:
 // just stream newline-separated json tweets through it.
@@ -23,26 +22,10 @@ function _tweet(tweet) {
   }
 }
 
-var Reader = function() {
-  Rechunker.call(this, {objectMode: true, split: '\n'});
-};
-util.inherits(Reader, Rechunker);
-Reader.prototype._chunk = function(chunk, encoding, callback) {
-  encoding = encoding == 'buffer' ? 'utf8' : encoding;
-  var line = Buffer.isBuffer(chunk) ? chunk.toString() : chunk;
-  try {
-    // the constructor isn't heeding options of {encoding: 'utf8', decodeStrings: false}
-    var obj = JSON.parse(line);
-    if (obj && obj.text) {
-      _tweet(obj);
-    }
-  } catch (err) {
-    this.emit('error', err);
-  }
-};
-
-var reader = new Reader();
-process.stdin.pipe(reader).on('end', end);
+process.stdin
+.pipe(new streaming.json.Parser())
+.pipe(new streaming.Mapper(_tweet))
+.on('end', end);
 
 function end() {
   process.stderr.write('\r\n');

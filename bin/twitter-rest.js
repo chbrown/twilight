@@ -79,11 +79,7 @@ function main() {
     full.showHelp();
   }
   else if (argv.version) {
-    var package_json_path = path.join(__dirname, '../package.json');
-    fs.readFile(package_json_path, 'utf8', function(err, data) {
-      var obj = JSON.parse(data);
-      console.log(obj.version);
-    });
+    console.log(require('../package').version);
   }
   else {
     rest(argv._[0], argv, function(err, response) {

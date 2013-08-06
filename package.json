@@ -27,6 +27,7 @@
     "glob": "*",
     "optimist": "*",
     "request": "*",
+    "streaming": "*",
     "sv": "*",
     "winston": "*"
   },
