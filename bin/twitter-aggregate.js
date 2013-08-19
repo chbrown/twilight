@@ -65,7 +65,7 @@ function readFile(filepath, r, callback) {
 
   child_process.spawn('bzcat', [filepath], {
     stdio: ['ignore', 'pipe', process.stderr]
-  }).stdout.pipe(new streaming.Line())
+  }).stdout.pipe(new streaming.Splitter())
   .on('end', function() {
     console.error('\r' + nrows + '\n');
     callback();

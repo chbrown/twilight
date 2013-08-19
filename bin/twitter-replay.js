@@ -43,7 +43,7 @@ TwitterReplayer.prototype.play = function() {
   if (file.match(/\.gz$/)) {
     file_stream = file_stream.pipe(zlib.createGunzip());
   }
-  var line_stream = file_stream.pipe(new streaming.Line());
+  var line_stream = file_stream.pipe(new streaming.Splitter());
 
   // we don't want to keep the file or line stream open outside this function
   // so we send in callbacks to different methods of the stream.
