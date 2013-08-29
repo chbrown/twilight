@@ -7,7 +7,7 @@ var querystring = require('querystring');
 var request = require('request');
 
 var Timeout = require('streaming').Timeout;
-var twilight = require('../index');
+var twilight = require('..');
 var tweet = require('../tweet');
 
 
