@@ -6,6 +6,22 @@ var sv = require('sv');
 var util = require('util');
 
 var getOAuth = exports.getOAuth = function(filepath, callback) {
+  if (process.env.consumer_key && process.env.consumer_secret && process.env.access_token && process.env.access_token_secret) {
+    // in testing we might want to specify all oauth credentials via the environment.
+    callback(null, {
+      consumer_key: process.env.consumer_key,
+      consumer_secret: process.env.consumer_secret,
+      token: process.env.access_token,
+      token_secret: process.env.access_token_secret,
+    });
+  }
+  else {
+    // otherwise (in the normal case) get oauth account info from file
+    getOAuthFromFile(filepath, callback);
+  }
+};
+
+var getOAuthFromFile = exports.getOAuthFromFile = function(filepath, callback) {
   // callback signature: function(err, oauth_object)
   sv.Parser.readToEnd(filepath, {encoding: 'utf8'}, function(err, accounts) {
     if (err) {

@@ -11,42 +11,66 @@ var url = require('url');
 var twilight = require('../index');
 
 var rest = exports.rest = function(urlStr, opts, callback) {
-  // callback signature: function(err, readable_stream)
-  twilight.getOAuth(opts.accounts, function(err, oauth) {
-    if (err) {
-      callback(err);
-    }
-    else {
-      var urlObj = url.parse(urlStr);
-      urlObj.protocol = 'https:';
-      urlObj.host = urlObj.hostname = 'api.twitter.com';
-      urlObj.pathname = '/1.1' + urlObj.pathname.replace(/^(\/?1\.[01])?/, '');
+  /** rest: make a http(s) call against the Twitter API
 
-      var request_opts = {
-        url: urlObj,
-        method: opts.method,
-        oauth: oauth,
-        timeout: opts.timeout,
-      };
+  `urlStr`: String
+  `opts`: Object
+      `method`: String (optional)
+      `oauth`: Object
+          ... see "twitter-curl.js"
+      `timeout`: Number (optional)
+      `data`: String (optional)
+      `json`: Boolean (optional)
+          JSONize output
+  `callback`: function(err, readable_stream)
+  */
+  var urlObj = url.parse(urlStr);
+  urlObj.protocol = 'https:';
+  urlObj.host = urlObj.hostname = 'api.twitter.com';
+  urlObj.pathname = '/1.1' + urlObj.pathname.replace(/^(\/?1\.[01])?/, '');
 
-      request_opts[opts.method == 'POST' ? 'form' : 'qs'] = opts.data ? querystring.parse(opts.data) : undefined;
-      logger.debug(request_opts.method + ' ' + url.format(request_opts.url));
+  var request_opts = {
+    url: urlObj,
+    method: opts.method,
+    oauth: opts.oauth,
+    timeout: opts.timeout,
+  };
 
-      request(request_opts).on('response', function(response) {
-        if (response.statusCode != 200) {
-          response.on('end', function() {
-            var err = new Error('HTTP Error ' + response.statusCode);
-            callback(err);
-          });
-        }
-        else {
-          if (opts.json) {
-            response = response.pipe(new twilight.JSONPrettifier());
-          }
-          callback(null, response);
-        }
+  request_opts[opts.method == 'POST' ? 'form' : 'qs'] = opts.data ? querystring.parse(opts.data) : undefined;
+  logger.debug(request_opts.method + ' ' + url.format(request_opts.url));
+
+  request(request_opts).on('response', function(response) {
+    if (response.statusCode != 200) {
+      response.on('end', function() {
+        var err = new Error('HTTP Error ' + response.statusCode);
+        callback(err);
       });
     }
+    else {
+      if (opts.json) {
+        response = response.pipe(new twilight.JSONPrettifier());
+      }
+      callback(null, response);
+    }
+  });
+};
+
+var restCommand = exports.restCommand = function(argv) {
+  twilight.getOAuth(argv.accounts, function(err, oauth) {
+    if (err) throw err;
+
+    var urlStr = argv._[0];
+    var opts = {
+      oauth: oauth,
+      method: argv.method,
+      timeout: argv.timeout,
+      data: argv.data,
+      json: argv.json,
+    };
+    rest(urlStr, opts, function(err, response) {
+      if (err) throw err;
+      response.pipe(process.stdout);
+    });
   });
 };
 
@@ -82,16 +106,7 @@ function main() {
     console.log(require('../package').version);
   }
   else {
-    rest(argv._[0], argv, function(err, response) {
-      if (err) {
-        logger.debug(err.toString());
-        throw err;
-      }
-      else {
-        // set the destination stream here so that rest() is more easily tested
-        response.pipe(process.stdout);
-      }
-    });
+    restCommand(argv);
   }
 }
 
