@@ -174,6 +174,28 @@ Or
 The Python and Javascript components are complementary.
 The Javascript offers crawlers, Python provides post-processing.
 
+
+## Testing with Travis CI
+
+The tested CLI commands now check for OAuth in specific environment variables before reading the given `--accounts` file or the default one (`~/.twitter`).
+
+To get tests to run on Travis CI, we can use `travis` command line tool to encrypt a quad of valid Twitter OAuth credentials so that only Travis CI can see them.
+
+Put together a file that looks like this (call it `twilight.env`):
+
+    consumer_key=bepLTQD5ftZCjqhXgkuJW
+    consumer_secret=jZ4HEYgNRKwJykbh5ptmcqV7v0o2WODdiMTF1fl6B9X
+    access_token=167246169-e1XTUxZqLnRaEyBF8KwOJtbID26gifMpAjukN5vz
+    access_token_secret=OVm7fJt8oY0C9kBsvych6Duq5pNIUxwagG143HdR
+
+And then, from within the root directory of this git repository, run the following sequence:
+
+    gem install travis
+    travis encrypt -s -a < twilight.env
+
+`.travis.yml` should now have those variables, but encrypted with Travis CI's public key.
+
+
 ## License
 
 Copyright © 2011–2013 Christopher Brown. [MIT Licensed](LICENSE).
