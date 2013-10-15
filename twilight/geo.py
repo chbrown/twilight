@@ -1,6 +1,6 @@
 import shapefile
 
-sf = shapefile.Reader('/home/chbrown/data/borders/thematicmap-simple')
+sf = shapefile.Reader('/data/chbrown/borders/thematicmap-simple')
 fields = [f[0] for f in sf.fields[1:]]
 # records[245] = {'AREA': 0,
 #  'FIPS': 'TW',

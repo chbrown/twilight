@@ -109,7 +109,7 @@ def main():
     elif opts.op == 'geo':
         from twitter.geo import first_country_containing
         # call like:
-        # $ cat /usr/local/data/twitter/nafrica_2012-06* | gunzip | ./geofilter | gzip > ~/data/nafrica_arabic_2012-06.tsv.gz
+        # $ cat /data/chbrown/twitter/nafrica_2012-06* | gunzip | ./geofilter | gzip > ~/data/nafrica_arabic_2012-06.tsv.gz
 
         def arabic_countries(tweet):
             if tweet.is_arabic:

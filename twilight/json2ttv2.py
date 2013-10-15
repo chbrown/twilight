@@ -9,12 +9,6 @@ from twilight import stdout_tabs, stdoutn, stderrn
 from twilight.ttv import TTV2
 
 
-description = '''Convert json.gz files to ttv2.
-    ttv2izer looks at /usr/local/data/twitter/*.json.gz files and sequentially ttv2'izes them.
-    To check if it's behaving:
-    cat yourfile.bz2 | awk 'BEGIN{FS="\\t"}{print NF}' # should only output 26's'''
-
-
 def get_openfiles():
     openfiles = []
     for p in psutil.get_process_list():
@@ -53,11 +47,14 @@ def convert_json_to_ttv2(json_path, ttv2_path):
 
 
 def main():
-    parser = argparse.ArgumentParser(description=description,
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--directory', default='/usr/local/data/twitter')
-    parser.add_argument('--delete', action='store_true')
-    parser.add_argument('--overwrite', action='store_true')
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, description='''
+    Convert json.gz files to ttv2.
+    ttv2izer looks at /data/chbrown/twitter/*.json{,.gz} files and sequentially ttv2'izes them.
+    To check if it's behaving:
+    bzcat yourfile.bz2 | awk 'BEGIN{FS="\\t"}{print NF}' # should only output 26's''')
+    parser.add_argument('--directory', default='/data/chbrown/twitter', help='Directory to look in for raw json files')
+    parser.add_argument('--delete', action='store_true', help='Delete after compressing?')
+    parser.add_argument('--overwrite', action='store_true', help='Overwrite existing compressed files?')
     opts = parser.parse_args()
 
     os.chdir(opts.directory)

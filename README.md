@@ -57,7 +57,7 @@ but you can specify a different path with the `--accounts` command line argument
 user=chbrown
 command=twitter-curl
     --filter "track=loveyabiebs,belieber,bietastrophe"
-    --file /usr/local/data/twitter/justin_TIMESTAMP.json
+    --file /data/twitter/justin_TIMESTAMP.json
     --timeout 86400
     --interval 3600
     --ttv2

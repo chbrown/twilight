@@ -101,7 +101,7 @@ function readFile(filepath, r, callback) {
 
 var r = redis.createClient();
 var rbuffer = new RedisBuffer();
-glob('/usr/local/data/twitter/*.ttv2.bz2', function(err, ttv2_filepaths) {
+glob('/data/chbrown/twitter/*.ttv2.bz2', function(err, ttv2_filepaths) {
   if (err) console.error(err);
   async.eachLimit(ttv2_filepaths, 2, function(ttv2_filepath, callback) {
     var ttv2_filename = path.basename(ttv2_filepath);
