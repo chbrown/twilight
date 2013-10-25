@@ -16,7 +16,7 @@ setup(
     zip_safe=False,
     install_requires=[
         'psutil',
-        'pyshp',
+        'pyshp >= 1.2.0',
         'redis',
         'twython',
         'ujson',
