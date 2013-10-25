@@ -4,7 +4,7 @@ import time
 import subprocess
 try:
     import ujson as json  # ujson returns python None for json null
-except (ImportError, ZipImportError), exc:
+except ImportError:
     import json
 
 try:
