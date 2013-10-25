@@ -15,7 +15,6 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        'distribute',
         'psutil',
         'pyshp',
         'redis',
@@ -25,10 +24,11 @@ setup(
     entry_points={
         'console_scripts': [
             'json2ttv2 = twilight.json2ttv2:main',
-            'tweetop = twilight.tweetop:main',
-            'geogrep = twilight.geogrep:main',
-            'twitter-user = twilight.user:main',
+            'twilight-tweetop = twilight.tweetop:main',
+            'twilight-geogrep = twilight.geogrep:main',
+            'twilight-user = twilight.user:main',
             'twilight-aggregate = twilight.aggregate:main',
+            'twilight-countries = twilight.countries:main',
         ],
     },
 )
