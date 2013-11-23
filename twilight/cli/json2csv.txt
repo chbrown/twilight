@@ -1,0 +1,20 @@
+import csv
+
+
+def json2csv(parser):
+    # cat syria_20120615-20120829.sentiments | cli json2csv > syria_20120615-20120829.csv
+    rows = []
+    cols = ['key']
+    for line in sys.stdin:
+        tabs = line.split('\t')
+        json_dict = json.loads(tabs[-1])
+        keyvals = dict(flatten_dict(json_dict))
+        keyvals['key'] = '-'.join(tabs[0:-1])
+        rows.append(keyvals)
+        cols = cols + list(set(keyvals.keys()) - set(cols))
+
+    cols = cols[0:1] + sorted(cols[1:])
+    writer = csv.DictWriter(sys.stdout, cols, restval='', extrasaction='raise', dialect=csv.excel)
+    writer.writeheader()
+    for row in rows:
+        writer.writerow(row)

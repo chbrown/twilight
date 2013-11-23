@@ -1,0 +1,17 @@
+def main(parser):
+    parser.add_argument('--files', nargs='*', help='Use with --op glomcsv')
+    opts = parser.parse_args()
+
+    filenames = opts.files
+
+    initialized = False
+    for filename in filenames:
+        basename = filename.replace('.csv', '')
+        with open(filename) as fp:
+            headers = fp.readline().strip()
+            if not initialized:
+                stdout('file,%s' % headers)
+                initialized = True
+            for line in fp:
+                stdout('%s,%s' % (basename, line.strip()))
+

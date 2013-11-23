@@ -196,6 +196,11 @@ And then, from within the root directory of this git repository, run the followi
 `.travis.yml` should now have those variables, but encrypted with Travis CI's public key.
 
 
+## TODO
+
+* Use `__slots__` in the `Tweet` subclasses, `TTV1` and `TTV2`.
+
+
 ## License
 
 Copyright © 2011–2013 Christopher Brown. [MIT Licensed](LICENSE).
