@@ -21,7 +21,7 @@ def main():
     parser.add_argument('action', choices=actions, help='Twilight CLI action')
     parser.add_argument('--version', action='version', version=twilight.__version__)
     parser.add_argument('-v', '--verbose', action='store_true', help='Log extra output')
-    opts = parser.parse_args()
+    opts, _ = parser.parse_known_args()
 
     level = logging.DEBUG if opts.verbose else logging.INFO
     logging.basicConfig(format='%(levelname)-8s %(message)s', level=level)

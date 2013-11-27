@@ -1,7 +1,8 @@
-from lexicons import arabsenti, afinn, liwc
 
 
 def main(parser):
+    # being lazy putting this import into this main()
+    from lexicons import arabsenti, afinn, liwc
 
     # u"\"!.:;,/\\#+"
     strip = dict((ord(ch), u' ') for ch in u'!"#%\'()*+,-./:;<=>?@[\]^_`{|}~')

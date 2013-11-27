@@ -21,7 +21,7 @@ def main(parser):
     bounding_box = geo.BoundingBox(opts.west, opts.south, opts.east, opts.north)
 
     for i, line in enumerate(opts.input):
-        line = line.decode('utf8').strip()
+        line = line.decode('utf8').rstrip('\n')
         tweet = tweets.TTV2(*line.split(u'\t'))
 
         if tweet.coordinates != '':
