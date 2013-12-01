@@ -165,13 +165,9 @@ Instead of JSON, you can use AWK to look at the TTV2:
 
 ## Python contents vs. Javascript contents
 
-    pip install -e git://github.com/chbrown/twilight.git#egg=twilight
+    easy_install -U twilight
 
-Or
-
-    pip install https://github.com/chbrown/twilight/tarball/master
-
-The Python and Javascript components are complementary.
+The Python and Javascript components are mostly complementary.
 The Javascript offers crawlers, Python provides post-processing.
 
 
@@ -196,11 +192,6 @@ And then, from within the root directory of this git repository, run the followi
 `.travis.yml` should now have those variables, but encrypted with Travis CI's public key.
 
 
-## TODO
-
-* Use `__slots__` in the `Tweet` subclasses, `TTV1` and `TTV2`.
-
-
 ## License
 
-Copyright © 2011–2013 Christopher Brown. [MIT Licensed](LICENSE).
+Copyright © 2011–2013 Christopher Brown. [MIT Licensed](https://github.com/chbrown/twilight/blob/master/LICENSE).

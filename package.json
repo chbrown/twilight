@@ -1,6 +1,6 @@
 {
   "name": "twilight",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "description": "Twitter (crawling) tools.",
   "keywords": [
     "twilight",
@@ -20,7 +20,11 @@
     "twitter-rest": "bin/twitter-rest.js",
     "twitter-rtcount": "bin/twitter-rtcount.js"
   },
-  "author": "Christopher Brown <io@henrian.com> (http://henrian.com)",
+  "author": {
+    "name": "Christopher Brown",
+    "email": "io@henrian.com",
+    "url": "http://henrian.com"
+  },
   "license": "MIT",
   "dependencies": {
     "async": "*",
