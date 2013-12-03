@@ -1,14 +1,20 @@
 #!/usr/bin/env node
 'use strict'; /*jslint es5: true, node: true, indent: 2 */
 var fs = require('fs');
-var logger = require('winston');
+var zlib = require('zlib');
 var path = require('path');
+var stream = require('stream');
+var winston = require('winston');
 var querystring = require('querystring');
 var request = require('request');
 
 var Timeout = require('streaming').Timeout;
 var twilight = require('..');
 var tweet = require('../tweet');
+
+var console_transport = new winston.transports.Console({level: null});
+console_transport.level = null; // Nope, {level: null} above doesn't cut it
+var logger = new winston.Logger({transports: [console_transport]});
 
 
 var curl = exports.curl = function(opts) {
@@ -27,46 +33,63 @@ var curl = exports.curl = function(opts) {
           `token_secret`: String
       `interval`: Integer (required)
           Die after this many seconds of silence.
-      `ttv2`: Boolean (optional)
+      `user-agent`: String (optional)
+          User-Agent header value to send to Twitter
+      `compress`: Boolean (default: false)
+          Ask for gzip compression from Twitter
+      `decompress`: Boolean (default: true)
+          Decompress a gzip-compressed response.
+          Not applicable if `compress` == false (or if Twitter decides not to respect the content-encoding header).
+          Coerced to true if `ttv2` == true.
+      `ttv2`: Boolean (default: false)
           Convert into tab-separated TTV2 format
 
-  returns a readable stream
+  returns a stream.Readable() object
   */
   logger.debug('curl started with options', opts);
-  var output = null;
+  // output is what this function returns, and we only pipe into it once.
+  var output = new stream.PassThrough();
 
   // pipeline has 6 steps.
 
-  // 1: hard reset timeout (optional)
-  if (opts.timeout) {
+  // 1: http request
+
+  // 1a. prepare headers
+  // the User-Agent header is required, if we want to have Twitter respect our accept-encoding value
+  var headers = {'User-Agent': opts['user-agent']};
+  if (opts.compress) {
+    headers['Accept-Encoding'] = 'deflate, gzip';
+  }
+  // 1b. formulate request
+  var url = 'https://stream.twitter.com/1.1/statuses/' + (opts.filter ? 'filter.json' : 'sample.json');
+  var method = opts.filter ? 'POST' : 'GET';
+  logger.debug(method + ' ' + url);
+  var req = request({
+    url: url,
+    method: method,
+    headers: headers,
+    form: opts.filter ? querystring.parse(opts.filter) : null,
+    oauth: opts.oauth,
+  });
+
+  // a little helper function for everything that could go wrong.
+  var shutdown = function(err) {
+    logger.error('shutdown', err);
+    output.emit('error', err);
+    output.push(null);
+  };
+
+  // 2: hard reset timeout (optional)
+  if (opts.timeout && opts.timeout != 'never') {
     setTimeout(function() {
-      var err = new Error('Elapsed lifetime of ' + opts.timeout + 's.');
-      output.emit('error', err);
-      if (output) output.end();
+      shutdown(new Error('Elapsed lifetime of ' + opts.timeout + 's.'));
     }, opts.timeout * 1000);
   }
 
-  // 2. used to be get oauth, but we fold that into opts now.
-
-  // 3a. http request
-  var request_opts = {
-    url: 'https://stream.twitter.com/1.1/statuses/' + (opts.filter ? 'filter.json' : 'sample.json'),
-    method: opts.filter ? 'POST' : 'GET',
-    form: opts.filter ? querystring.parse(opts.filter) : null,
-    oauth: opts.oauth,
-  };
-  logger.debug(request_opts.method + ' ' + request_opts.url);
-  var req = request(request_opts);
-  output = req;
-
-  var shutdown = function(err) {
-    console.error('shutdown', err);
-    req.abort();
-    output.end();
-  };
-
-  // 3b. http response
+  // 3: listen for http response
   req.on('response', function(response) {
+    logger.debug('response.headers:', response.headers);
+    // status code != 200 => failure
     if (response.statusCode != 200) {
       var body = '';
       response.on('data', function(chunk) {
@@ -76,27 +99,54 @@ var curl = exports.curl = function(opts) {
         var err = new Error('HTTP Error ' + response.statusCode + ': ' + body);
         shutdown(err);
       });
+      return;
     }
+
+    // after pulling off the encoding, we don't need anything else about the http response,
+    // so it can be incrementally updated with each further step in the pipeline.
+    var encoding = response.headers['content-encoding'];
+
+    // 4: decompress if needed / requested
+    // this must run from within the response listener since we need the response headers
+    if (opts.decompress || opts.ttv2) {
+      if (encoding == 'gzip') {
+        logger.debug("gunzip'ing HTTP response");
+        var gunzip = zlib.createGunzip();
+        gunzip.on('error', shutdown);
+        response = response.pipe(gunzip);
+      }
+      else if (encoding == 'deflate') {
+        logger.debug('inflating HTTP response');
+        var inflate = zlib.createInflate();
+        inflate.on('error', shutdown);
+        response = response.pipe(inflate);
+      }
+      else {
+        logger.debug('Not modifying HTTP response with Content-Encoding: %s', encoding);
+      }
+    }
+
+    // 5. timeout: ensure we get something every x seconds.
+    var timeout_detector = new Timeout(opts.interval); // timeout takes seconds
+    // timeout_detector.on('error', shutdown);
+    response = response.pipe(timeout_detector);
+
+    // 6: convert to ttv2 (optional)
+    if (opts.ttv2) {
+      // 6a. tweet consolidator -- handles the Buffer->utf8 conversion
+      var jsons_to_tweet = new tweet.JSONStoTweet();
+      // jsons_to_tweet.on('error', shutdown);
+      response = response.pipe(jsons_to_tweet);
+      // 6b. ttv2 flattener
+      var tweet_to_ttv2 = new tweet.TweetToTTV2();
+      response = response.pipe(tweet_to_ttv2);
+      // .on('error', shutdown);
+    }
+    response.pipe(output);
   });
   // .on('error', shutdown);
 
-  // 4. timeout: ensure we get something every x seconds.
-  var timeout_detector = new Timeout(opts.interval); // timeout takes seconds
-  // timeout_detector.on('error', shutdown);
-  output = output.pipe(timeout_detector);
-
-  if (opts.ttv2) {
-    // 5a. tweet consolidator -- handles the Buffer->utf8 conversion
-    var jsons_to_tweet = new tweet.JSONStoTweet();
-    // jsons_to_tweet.on('error', shutdown);
-    output = output.pipe(jsons_to_tweet);
-    // 5b. ttv2 flattener
-    var tweet_to_ttv2 = new tweet.TweetToTTV2();
-    output = output.pipe(tweet_to_ttv2);
-    // .on('error', shutdown);
-  }
-
-  // 6. return final stream
+  // return PassThrough stream (not immediately hooked up to anything)
   return output;
 };
 
@@ -112,6 +162,9 @@ var curlCommand = exports.curlCommand = function(argv) {
       timeout: argv.timeout,
       filter: argv.filter,
       interval: argv.interval,
+      'user-agent': argv['user-agent'],
+      compress: argv.compress,
+      decompress: argv.decompress,
       ttv2: argv.ttv2,
     });
 
@@ -138,7 +191,10 @@ function main() {
       filter: 'twitter API query',
       file: 'output target (- for STDOUT)',
       interval: 'die after a silence of this many seconds',
-      timeout: 'die this many seconds after starting, no matter what (defaults to never)',
+      timeout: 'die this many seconds after starting, no matter what',
+      'user-agent': 'User-Agent header to send in HTTP request',
+      compress: 'request gzip / deflate compression from twitter',
+      decompress: "decompress gzip'ed or deflated responses",
       ttv2: 'convert to TTV2 (defaults to false, meaning JSON)',
 
       help: 'print this help message',
@@ -149,8 +205,12 @@ function main() {
     .alias({verbose: 'v'})
     .default({
       interval: 600,
+      timeout: 'never',
+      compress: false,
+      decompress: true,
       file: '-',
       accounts: '~/.twitter',
+      'user-agent': 'twilight/twitter-curl',
     });
 
   var argv = full.argv;

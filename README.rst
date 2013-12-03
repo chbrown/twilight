@@ -135,7 +135,8 @@ TTV2
 ----
 
 TTV2 is the Tweet tab-separated format version 2, the specification is
-below. Fields are 1-indexed for easy AWKing.
+below. Fields are 1-indexed for easy AWKing (see Markdown source for
+0-indexing).
 
 0.  tweet\_id
 1.  created\_at parsed into YYYYMMDDTHHMMSS, implicitly UTC
@@ -181,7 +182,7 @@ Install `json <https://github.com/zpoley/json-command>`__ first:
     twitter-curl --filter 'track=انتخابات' | json -C text
     twitter-curl --filter 'track=sarcmark,%F0%9F%91%8F' | json -C text
 
-It supports unicode: انتخابات is the Arabic for "elections," and
+It supports unicode: انتخابات is Arabic for "elections," and
 ``decodeURIComponent('%F0%9F%91%8F')`` is the `"CLAPPING HANDS"
 (U+1F44F) <http://www.fileformat.info/info/unicode/char/1f44f/index.htm>`__
 character.
