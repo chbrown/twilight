@@ -162,3 +162,10 @@ class TTV2(TTV2_tuple, Tweet):
             user.get('lang') or u'',
             unicode(user.get('utc_offset') or '')
         )
+
+    @classmethod
+    def from_line(cls, line):
+        '''
+        Strip the newline from the line, decode bytestring into utf-8, and split into its 26 fields
+        '''
+        return cls(*line.rstrip('\n').decode('utf8').split(u'\t'))

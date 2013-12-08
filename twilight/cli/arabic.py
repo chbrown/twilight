@@ -15,8 +15,7 @@ def main(parser):
     opts = parser.parse_args()
 
     for i, line in enumerate(opts.input):
-        line = line.decode('utf8').rstrip('\n')
-        tweet = tweets.TTV2(*line.split(u'\t'))
+        tweet = tweets.TTV2.from_line(line)
         if language.is_arabic(tweet.text):
             print >> opts.output, line.encode('utf8')
 

@@ -35,8 +35,7 @@ def main(parser):
         raise IOError('You must pipe in uncompressed TTV2-formatted tweets')
 
     for i, line in enumerate(opts.input):
-        line = line.decode('utf8').rstrip('\n')
-        tweet = tweets.TTV2(*line.split(u'\t'))
+        tweet = tweets.TTV2.from_line(line)
 
         if tweet.coordinates == '':
             logger.debug('No coordinates [%s] @%s: %s', tweet.id, tweet.user_screen_name, tweet.text)
