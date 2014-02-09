@@ -1,3 +1,4 @@
+from twilight.lib import shapes
 
 
 def polygon_contains(poly, x, y):
@@ -105,3 +106,27 @@ class NamedArea(object):
         # TM_WORLD_BORDERS datasets have shapefiles with these field names:
         #   FIPS, ISO2, ISO3, UN, NAME, AREA, POP2005, REGION, SUBREGION, LON, LAT
         return cls(attributes['ISO3'], attributes['NAME'], polygons, BoundingBox(*bbox))
+
+
+class AreaCollection(object):
+    '''
+    Helper class to make geolocating lat-lon pairs easier for certain types of areas, like countries.
+    '''
+    def __init__(self, areas):
+        self.areas = areas
+
+    @classmethod
+    def from_tm_world_borders_shapefile(cls, shapefile):
+        areas = [NamedArea.from_tm_world_borders(polygons, bbox, attributes)
+            for polygons, bbox, attributes in shapes.read_shapefile(shapefile)]
+        return cls(areas)
+
+    def areas_containing(self, lon, lat):
+        # should reorder areas into the most popular first so that we find them quicker
+        for area in self.areas:
+            if area.contains(lon, lat):
+                yield area
+
+    def first_area_containing(self, lon, lat):
+        for area in self.areas_containing(lon, lat):
+            return area

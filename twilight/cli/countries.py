@@ -1,8 +1,7 @@
 import os
 import sys
 import argparse
-from twilight.lib import shapes, geo
-from twilight.lib import tweets
+from twilight.lib import geo, tweets
 
 import logging
 logger = logging.getLogger(__name__)
@@ -19,17 +18,7 @@ def main(parser):
         default=os.path.expanduser('~/corpora/TM_WORLD_BORDERS-0.3/TM_WORLD_BORDERS-0.3.shp'))
     opts = parser.parse_args()
 
-    countries = [geo.NamedArea.from_tm_world_borders(polygons, bbox, attributes) for polygons, bbox, attributes in shapes.read_shapefile(opts.map)]
-
-    def countries_containing(lon, lat):
-        # should reorder countries into the most popular first so that we find them quicker
-        for country in countries:
-            if country.contains(lon, lat):
-                yield country
-
-    def first_country_containing(lon, lat):
-        for country in countries_containing(lon, lat):
-            return country
+    countries = geo.AreaCollection.from_tm_world_borders_shapefile(opts.map)
 
     if opts.input.isatty():
         raise IOError('You must pipe in uncompressed TTV2-formatted tweets')
@@ -41,8 +30,8 @@ def main(parser):
             logger.debug('No coordinates [%s] @%s: %s', tweet.id, tweet.user_screen_name, tweet.text)
         else:
             lon, lat = map(float, tweet.coordinates.split(','))
-            # for country_match in countries_containing(lon, lat):
-            country_match = first_country_containing(lon, lat)
+            # for country_match in countries.areas_containing(lon, lat):
+            country_match = countries.first_area_containing(lon, lat)
             if country_match:
                 extended_line = unicode(tweet) + u'\t' + unicode(country_match.name)
                 print >> opts.output, extended_line.encode('utf8')

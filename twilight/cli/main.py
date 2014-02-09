@@ -30,3 +30,6 @@ def main():
     logger.debug('Logging with level >= %s (%s)', logging.root.level, logging.getLevelName(logging.root.level))
 
     actions[opts.action](parser)
+
+if __name__ == '__main__':
+    main()
