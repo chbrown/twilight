@@ -25,7 +25,9 @@ var curl = exports.curl = function(opts) {
       `timeout`: Integer (optional)
           Hard limit to live.
       `filter`: String (optional)
-          Query like "track=this" or "locations=those", etc.
+          Form like "track=this" or "locations=those", etc.
+      `sample`: String (optional)
+          Query like "language=en", etc.
       `oauth`: Object (required)
           `consumer_key`: String
           `consumer_secret`: String
@@ -61,16 +63,25 @@ var curl = exports.curl = function(opts) {
     headers['Accept-Encoding'] = 'deflate, gzip';
   }
   // 1b. formulate request
-  var url = 'https://stream.twitter.com/1.1/statuses/' + (opts.filter ? 'filter.json' : 'sample.json');
-  var method = opts.filter ? 'POST' : 'GET';
-  logger.debug(method + ' ' + url);
-  var req = request({
-    url: url,
-    method: method,
+  var req_opts = {
     headers: headers,
-    form: opts.filter ? querystring.parse(opts.filter) : null,
     oauth: opts.oauth,
-  });
+  };
+  if (opts.filter) {
+    req_opts.url = 'https://stream.twitter.com/1.1/statuses/filter.json';
+    req_opts.method = 'POST';
+    req_opts.form = querystring.parse(opts.filter);
+  }
+  else {
+    req_opts.url = 'https://stream.twitter.com/1.1/statuses/sample.json';
+    req_opts.method = 'GET';
+    if (opts.sample) {
+      req_opts.qs = querystring.parse(opts.sample);
+    }
+  }
+
+  logger.debug(req_opts.method + ' ' + req_opts.url);
+  var req = request(req_opts);
 
   // a little helper function for everything that could go wrong.
   var shutdown = function(err) {
@@ -222,13 +233,20 @@ function main() {
   else if (argv.version) {
     console.log(require('../package').version);
   }
-  else if (argv.query) {
-    full.showHelp();
-    logger.error('argument deprecated');
-    logger.error('  --query is no longer supported and I am throwing this exception for your own good.');
-    process.exit(1);
-  }
   else {
+    argv = full.check(function(argv) {
+      if (argv.query) {
+        throw new Error([
+          'argument deprecated.',
+          '--query is no longer supported and I am throwing this exception for your own good.',
+        ].join(' '));
+      }
+
+      if (argv.filter && argv.sample) {
+        throw new Error('You cannot specify both --filter and --sample.');
+      }
+    }).argv;
+
     curlCommand(argv);
   }
 }
