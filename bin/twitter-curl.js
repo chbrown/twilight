@@ -172,6 +172,7 @@ var curlCommand = exports.curlCommand = function(argv) {
       oauth: oauth,
       timeout: argv.timeout,
       filter: argv.filter,
+      sample: argv.sample,
       interval: argv.interval,
       'user-agent': argv['user-agent'],
       compress: argv.compress,
@@ -199,7 +200,8 @@ function main() {
     .usage('Usage: twitter-curl --filter "track=bieber"')
     .describe({
       accounts: 'filepath of twitter oauth csv',
-      filter: 'twitter API query',
+      filter: 'twitter API query for filter endpoint',
+      sample: 'twitter API query for sample endpoint',
       file: 'output target (- for STDOUT)',
       interval: 'die after a silence of this many seconds',
       timeout: 'die this many seconds after starting, no matter what',
