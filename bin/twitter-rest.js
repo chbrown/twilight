@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict'; /*jslint es5: true, node: true, indent: 2 */
 var fs = require('fs');
-var logger = require('winston');
+var logger = require('loge');
 var path = require('path');
 var querystring = require('querystring');
 var request = require('request');

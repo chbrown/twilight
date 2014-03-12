@@ -4,17 +4,13 @@ var fs = require('fs');
 var zlib = require('zlib');
 var path = require('path');
 var stream = require('stream');
-var winston = require('winston');
+var logger = require('loge');
 var querystring = require('querystring');
 var request = require('request');
 
 var Timeout = require('streaming').Timeout;
 var twilight = require('..');
 var tweet = require('../tweet');
-
-var console_transport = new winston.transports.Console({level: null});
-console_transport.level = null; // Nope, {level: null} above doesn't cut it
-var logger = new winston.Logger({transports: [console_transport]});
 
 
 var curl = exports.curl = function(opts) {

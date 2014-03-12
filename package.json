@@ -29,11 +29,11 @@
   "dependencies": {
     "async": "*",
     "glob": "*",
+    "loge": "*",
     "optimist": "*",
     "request": "*",
     "streaming": "*",
-    "sv": "*",
-    "winston": "*"
+    "sv": "*"
   },
   "devDependencies": {
     "tap": "*"
