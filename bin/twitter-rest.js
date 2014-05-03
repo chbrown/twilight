@@ -1,10 +1,12 @@
 #!/usr/bin/env node
-'use strict'; /*jslint es5: true, node: true, indent: 2 */
+/*jslint node: true */
 var fs = require('fs');
+var https = require('https');
 var logger = require('loge');
 var path = require('path');
 var querystring = require('querystring');
 var request = require('request');
+var streaming = require('streaming');
 var sv = require('sv');
 var url = require('url');
 
@@ -41,14 +43,14 @@ var rest = exports.rest = function(urlStr, opts, callback) {
 
   request(request_opts).on('response', function(response) {
     if (response.statusCode != 200) {
-      response.on('end', function() {
-        var err = new Error('HTTP Error ' + response.statusCode);
-        callback(err);
-      });
+      var err = new Error('HTTP Error ' + response.statusCode);
+      callback(err, response);
     }
     else {
       if (opts.json) {
-        response = response.pipe(new twilight.JSONPrettifier());
+        response = response
+          .pipe(new streaming.json.Parser())
+          .pipe(new streaming.json.Stringifier(null, '  '));
       }
       callback(null, response);
     }
@@ -68,7 +70,12 @@ var restCommand = exports.restCommand = function(argv) {
       json: argv.json,
     };
     rest(urlStr, opts, function(err, response) {
-      if (err) throw err;
+      if (err) {
+        console.error(err);
+        return streaming.readToEnd(response, function(err, chunks) {
+          logger.debug(chunks.join(''));
+        });
+      }
       response.pipe(process.stdout);
     });
   });

@@ -1,11 +1,14 @@
 #!/usr/bin/env node
-'use strict'; /*jslint es5: true, node: true, indent: 2 */
+/*jslint node: true */
 var logger = require('loge');
 var request = require('request');
 var sv = require('sv');
 var util = require('util');
 
 var getOAuth = exports.getOAuth = function(filepath, callback) {
+  /** getOAuth defaults to using Twitter authentication variables from the environment,
+  first, but if they are not all there, with the expected names, will pull a random account from the specified filepath.
+  */
   if (process.env.consumer_key && process.env.consumer_secret && process.env.access_token && process.env.access_token_secret) {
     // in testing we might want to specify all oauth credentials via the environment.
     callback(null, {

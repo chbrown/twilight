@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-'use strict'; /*jslint es5: true, node: true, indent: 2 */
+/*jslint node: true */
 var fs = require('fs');
 var zlib = require('zlib');
 var path = require('path');
@@ -8,7 +8,7 @@ var logger = require('loge');
 var querystring = require('querystring');
 var request = require('request');
 
-var Timeout = require('streaming').Timeout;
+var streaming = require('streaming');
 var twilight = require('..');
 var tweet = require('../tweet');
 
@@ -76,6 +76,15 @@ var curl = exports.curl = function(opts) {
     }
   }
 
+  // if (opts.cli) {
+  //   var curl_cli = ['curl', req_opts.url,
+  //     '-H', '"content-type: application/x-www-form-urlencoded; charset=utf-8"',
+  //     '-H', 'Authorization: OAuth oauth_consumer_key="xllpWZyC42jL6iQg2M8gQ",oauth_nonce="8c08aeaf1d2c4c61af9182ff078560e7",oauth_signature_method="HMAC-SHA1",oauth_timestamp="1371159851",oauth_token="772224145-hfDlC2qUubxIR8NYtovMkdmRu1x4ROsKkVOb5w0c",oauth_version="1.0",oauth_signature="QW18Aur%2FERy4Prn%2BEJnHQo6i6F0%3D"',
+  //     '-H', 'content-length: 30',
+  //     '-d', opts.filter,
+  //   ];
+  // }
+
   logger.debug(req_opts.method + ' ' + req_opts.url);
   var req = request(req_opts);
 
@@ -96,18 +105,19 @@ var curl = exports.curl = function(opts) {
   // 3: listen for http response
   req.on('response', function(response) {
     logger.debug('response.headers:', response.headers);
-    // status code != 200 => failure
+    // consider every status code != 200 fatal
     if (response.statusCode != 200) {
-      var body = '';
-      response.on('data', function(chunk) {
-        body += chunk;
-      });
-      response.on('end', function() {
-        var err = new Error('HTTP Error ' + response.statusCode + ': ' + body);
+      return streaming.readToEnd(response, function(err, chunks) {
+        if (!err) {
+          err = new Error('HTTP Error ' + response.statusCode + ': ' + chunks.join(''));
+        }
         shutdown(err);
       });
-      return;
     }
+    // response.on('data', function(chunk) {
+    //   console.log('chunk "%s"', chunk.toString());
+    // })
+    // response.on('error', shutdown);
 
     // after pulling off the encoding, we don't need anything else about the http response,
     // so it can be incrementally updated with each further step in the pipeline.
@@ -129,12 +139,12 @@ var curl = exports.curl = function(opts) {
         response = response.pipe(inflate);
       }
       else {
-        logger.debug('Not modifying HTTP response with Content-Encoding: %s', encoding);
+        logger.debug('Not wrapping HTTP response with Content-Encoding: %s', encoding);
       }
     }
 
     // 5. timeout: ensure we get something every x seconds.
-    var timeout_detector = new Timeout(opts.interval); // timeout takes seconds
+    var timeout_detector = new streaming.Timeout(opts.interval); // timeout takes seconds
     // timeout_detector.on('error', shutdown);
     response = response.pipe(timeout_detector);
 

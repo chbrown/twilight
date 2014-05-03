@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-'use strict'; /*jslint es5: true, node: true, indent: 2 */
+/*jslint node: true */
 var child_process = require('child_process');
 var os = require('os');
 var async = require('async');
