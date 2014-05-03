@@ -1,7 +1,9 @@
 import os
 import sys
 import argparse
-from twilight.lib import geo, tweets
+from twilight.lib import tweets
+from geo import shapes
+from geo.types import Feature, FeatureCollection
 
 import logging
 logger = logging.getLogger(__name__)
@@ -18,7 +20,13 @@ def main(parser):
         default=os.path.expanduser('~/corpora/TM_WORLD_BORDERS-0.3/TM_WORLD_BORDERS-0.3.shp'))
     opts = parser.parse_args()
 
-    countries = geo.AreaCollection.from_tm_world_borders_shapefile(opts.map)
+    countries = FeatureCollection([])
+    for polygons, bbox, attributes in shapes.read_shapefile(opts.map):
+        # TM_WORLD_BORDERS datasets have shapefiles with these field names:
+        #   FIPS, ISO2, ISO3, UN, NAME, AREA, POP2005, REGION, SUBREGION, LON, LAT
+        geometry = dict(type='MultiPolygon', coordinates=polygons)
+        properties = dict(name=attributes['NAME'])
+        countries.features += [Feature(geometry, properties, polygons, id=attributes['ISO3'], bbox=bbox)]
 
     if opts.input.isatty():
         raise IOError('You must pipe in uncompressed TTV2-formatted tweets')
@@ -31,11 +39,7 @@ def main(parser):
         else:
             lon, lat = map(float, tweet.coordinates.split(','))
             # for country_match in countries.areas_containing(lon, lat):
-            country_match = countries.first_area_containing(lon, lat)
+            country_match = countries.first_feature_containing(lon, lat)
             if country_match:
-                extended_line = unicode(tweet) + u'\t' + unicode(country_match.name)
+                extended_line = unicode(tweet) + u'\t' + unicode(country_match.id)
                 print >> opts.output, extended_line.encode('utf8')
-                # melt out each hashtag into its own line
-                # for hashtag in re.findall(r'#\S+', tweet.text):
-                #     timestamp = tweet.created_at  # [:8]
-                #     print '\t'.join((timestamp, country_match.ISO3, hashtag))
