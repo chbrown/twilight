@@ -1,6 +1,5 @@
 import sys
 import argparse
-from twilight.lib import geo, tweets
 
 import logging
 logger = logging.getLogger(__name__)
@@ -10,6 +9,7 @@ def main(parser):
     '''
     Search TTV2 lines for matches within a certain bounding box
     '''
+    from twilight.lib import geo, tweets
     parser.add_argument('north', type=float)
     parser.add_argument('east', type=float)
     parser.add_argument('south', type=float)
