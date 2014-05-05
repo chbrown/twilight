@@ -2,8 +2,6 @@ import os
 import sys
 import argparse
 from twilight.lib import tweets
-from geo import shapes
-from geo.types import Feature, FeatureCollection
 
 import logging
 logger = logging.getLogger(__name__)
@@ -19,6 +17,9 @@ def main(parser):
     parser.add_argument('--map', help='ESRI Shapefile filepath',
         default=os.path.expanduser('~/corpora/TM_WORLD_BORDERS-0.3/TM_WORLD_BORDERS-0.3.shp'))
     opts = parser.parse_args()
+
+    from geo import shapes
+    from geo.types import Feature, FeatureCollection
 
     countries = FeatureCollection([])
     for polygons, bbox, attributes in shapes.read_shapefile(opts.map):
