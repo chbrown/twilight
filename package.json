@@ -18,7 +18,8 @@
     "twitter-curl": "bin/twitter-curl.js",
     "twitter-replay": "bin/twitter-replay.js",
     "twitter-rest": "bin/twitter-rest.js",
-    "twitter-rtcount": "bin/twitter-rtcount.js"
+    "twitter-rtcount": "bin/twitter-rtcount.js",
+    "twitter-stream": "bin/twitter-stream.js"
   },
   "author": {
     "name": "Christopher Brown",
