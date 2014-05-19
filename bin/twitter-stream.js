@@ -14,6 +14,7 @@ var util = require('util');
 
 var twilight = require('../');
 
+
 var TwitterError = function(incoming_message, body) {
   Error.call(this);
   Error.captureStackTrace(this, arguments.callee);
@@ -51,7 +52,6 @@ Batcher.prototype._transform = function(chunk, encoding, callback) {
 Batcher.prototype._flush = function(callback) {
   this.checkFlush(true, callback);
 };
-
 
 
 var fetch_ids = function(url, ids, callback) {
@@ -105,32 +105,23 @@ var streamCommand = exports.streamCommand = function(argv, callback) {
 
   batch_input.on('end', function() {
     callback();
-    // logger.info('batch_input->end');
   });
 
   (function loop() {
-    // (function loop(batch) {
-    // if (batch === undefined) {
-    //   batch = batch_input.read();
-    // }
     var batch = batch_input.read();
     if (batch === null) {
       // no available data; wait
       batch_input.once('readable', function() {
-        // logger.info('batch_input->readable (1x)');
         loop();
       });
     }
     else {
-      // logger.info('reading batch (N=%d)', batch.length);
       fetch_ids_retry(url, batch, function(err, response) {
         if (err) return callback(err);
-        // console.log('found ' + response.length);
         response.forEach(function(obj) {
           console.log(JSON.stringify(obj));
         });
         loop();
-        // setImmediate(loop);
       });
     }
   })();
