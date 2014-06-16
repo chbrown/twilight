@@ -90,7 +90,11 @@ def main(parser):
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         description=__doc__)
     parser.add_argument('--paths', nargs='+', help='Directories or files to convert')
+    parser.add_argument('--verbose', action='store_true', help='Output debugging information')
     opts, _ = parser.parse_known_args()
+
+    # logging.basicConfig(level=logging.DEBUG)
+    logger.setLevel(logging.DEBUG if opts.verbose else logging.INFO)
 
     openfiles = [os.path.basename(filepath) for filepath in filesystem.openfilepaths()]
 
