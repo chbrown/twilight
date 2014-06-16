@@ -1,5 +1,5 @@
-# from twilight.ttv import TTV2
 import os
+import re
 import bz2
 import json
 import argparse
@@ -9,40 +9,59 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+json_gz_to_ttv2_bz2_expected_reduction = (0.18, 0.50)
+json_to_ttv2_bz2_expected_reduction = (0.015, 0.07)
+
+
+def convert_line(line_bytes):
+    line_unicode = line_bytes.decode('utf8')
+    line_object = json.loads(line_unicode.strip())
+    line_tweet = tweets.TTV2.from_dict(line_object)
+    line_ttv2_unicode = unicode(line_tweet)
+    line_ttv2_bytes = line_ttv2_unicode.encode('utf8')
+    return line_ttv2_bytes
+
+
 def convert(json_filepath, ttv2_filepath):
     # the given json_filepath can be either gzip'ed or bzip2'ed or not
     # the resulting file at ttv2_path will always be bzip2'ed
-    nerrors = 0
-    ndeletes = 0
-    with bz2.BZ2File(ttv2_filepath, 'w') as ttv2_fp:
-        with filesystem.open_with_autodecompress(json_filepath) as json_fp:
-            for line in json_fp:
-                line = line.decode('utf8').strip()
-                try:
-                    dict_ = json.loads(line)
-                # except UnicodeDecodeError, exc:
-                #     logger.error('Error decoding string: %s (%s)', line.strip(), exc)
-                except ValueError, exc:
-                    nerrors += 1
-                    logger.debug('Error in json.loads(%r): %s', line, exc)
+    # nerrors = 0
+    # ndeletes = 0
+    # ntweets = 0
+    # logger.info('{:.2%} reduction, {:d} tweets, {:d} errors, {:d} deletes'.format(
+    #     reduction, ntweets, nerrors, ndeletes))
 
-                if 'delete' in dict_:
-                    ndeletes += 1
-                else:
-                    tweet = tweets.TTV2.from_dict(dict_)
-                    print >> ttv2_fp, unicode(tweet).encode('utf8')
+    ttv2_fp = bz2.BZ2File(ttv2_filepath, 'w')
+    json_fp = filesystem.open_with_autodecompress(json_filepath)
+    try:
+        for line_bytes in json_fp:
+            try:
+                line_ttv2_bytes = convert_line(line_bytes)
+                print >> ttv2_fp, line_ttv2_bytes
+            except UnicodeDecodeError, exc:
+                logger.error('Error decoding line: %s (%s)', line_bytes, exc)
+            except ValueError, exc:
+                logger.error('Error parsing JSON: %r (%s)', line_bytes, exc)
+            except KeyError, exc:
+                logger.error('Error reading tweet %r: %s', line_bytes, exc)
+    finally:
+        ttv2_fp.close()
+        json_fp.close()
 
+    cleanup(json_filepath, ttv2_filepath)
+
+
+def cleanup(json_filepath, ttv2_filepath):
     # check output before deleting
     ttv2_size = os.path.getsize(ttv2_filepath)
     json_size = os.path.getsize(json_filepath)
     # reduction will generally be in the (0.05, 0.5) interval
     reduction = float(ttv2_size) / float(json_size)
-    logger.info('{:.2%} size reduction, {:d} errors, {:d} deletes'.format(reduction, nerrors, ndeletes))
 
     if json_filepath.endswith('.json.gz'):
-        min_reduction, max_reduction = tweets.json_gz_to_ttv2_bz2_expected_reduction
+        min_reduction, max_reduction = json_gz_to_ttv2_bz2_expected_reduction
     else:
-        min_reduction, max_reduction = tweets.json_to_ttv2_bz2_expected_reduction
+        min_reduction, max_reduction = json_to_ttv2_bz2_expected_reduction
 
     if min_reduction < reduction < max_reduction:
         logger.warn('Deleting original file: %s', json_filepath)
@@ -58,29 +77,28 @@ def main(parser):
     To check if it's behaving:
     bzcat yourfile.ttv2.bz2 | awk 'BEGIN{FS="\\t"}{print NF}' # should only output 26's
     '''
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, description=__doc__)
-    parser.add_argument('--directory', default='/data/chbrown/twitter', help='Directory to look in for raw json files')
-    # parser.add_argument('--delete', action='store_true', help='Delete after compressing?')
-    # parser.add_argument('--overwrite', action='store_true', help='Overwrite existing compressed files?')
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        description=__doc__)
+    parser.add_argument('--paths', nargs='+', help='Directories or files to convert')
     opts, _ = parser.parse_known_args()
 
-
-    # filter out the openfiles, and only look at .json or .json.gz files
     openfiles = [os.path.basename(filepath) for filepath in filesystem.openfilepaths()]
-    for filename in os.listdir(opts.directory):
-        if filename.endswith('.json.gz') or filename.endswith('.json'):
-            json_filepath = os.path.join(opts.directory, filename)
-            if filename in openfiles:
-                logger.info('Ignoring open file: %s', filename)
-            else:
-                ttv2_filename = '%s.ttv2.bz2' % filename.split('.')[0]
-                ttv2_filepath = os.path.join(opts.directory, ttv2_filename)
-                if os.path.exists(ttv2_filepath):
-                    logger.warn('Target already exists: %s', ttv2_filename)
-                else:
-                    logger.info('Converting %s -> %s', filename, ttv2_filename)
-                    # if os.path.exists(ttv2_filepath):
-                        # logger.info('(Overwriting %s)', ttv2_filename)
 
-                    convert(json_filepath, ttv2_filepath)
+    for filepath in filesystem.walk(opts.paths):
+        ttv2_filepath = re.sub('.json(.gz)?', '.ttv2.bz2', filepath)
 
+        if not filepath.endswith(('.json', '.json.gz')):
+            logger.info('Ignoring non-JSON file %s', filepath)
+            continue
+
+        if os.path.basename(filepath) in openfiles:
+            logger.info('Ignoring open file %s', filepath)
+            continue
+
+        if os.path.exists(ttv2_filepath):
+            logger.info('Target already exists: %s', ttv2_filepath)
+            continue
+
+        logger.info('Converting %s -> %s', filepath, ttv2_filepath)
+        convert(filepath, ttv2_filepath)

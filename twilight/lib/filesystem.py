@@ -1,3 +1,4 @@
+import os
 import gzip
 import bz2
 import psutil
@@ -29,3 +30,19 @@ def open_with_autodecompress(filepath):
         return bz2.BZ2File(filepath)
     else:
         return open(filepath)
+
+
+def walk(paths):
+    '''
+    List all files in all given paths, recursing into subdirectories.
+
+    Paths can be files or directories or both.
+
+    Does not yield directories, only files.
+    '''
+    for path in paths:
+        if os.path.isdir(path):
+            for child_path in walk(os.path.join(path, child) for child in os.listdir(path)):
+                yield child_path
+        else:
+            yield path

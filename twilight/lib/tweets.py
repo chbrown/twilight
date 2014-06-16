@@ -1,9 +1,6 @@
 import time
 from collections import namedtuple
 
-json_gz_to_ttv2_bz2_expected_reduction = (0.18, 0.50)
-json_to_ttv2_bz2_expected_reduction = (0.02, 0.07)
-
 whitespace_consolidation = {ord('\t'): u' ', ord('\n'): u' ', ord('\r'): u''}
 
 
