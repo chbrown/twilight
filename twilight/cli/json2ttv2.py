@@ -18,7 +18,7 @@ def read_line(line):
     '''
     Returns tuple ('tweet' | 'delete' | 'limit' | 'empty' | 'error', TTV2_bytestring | None)
     '''
-    if line == '':
+    if line.isspace():
         return 'empty', None
 
     try:
