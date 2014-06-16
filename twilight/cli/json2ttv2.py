@@ -3,6 +3,7 @@ import re
 import bz2
 import json
 import argparse
+from collections import Counter
 from twilight.lib import filesystem, tweets
 
 import logging
@@ -13,42 +14,49 @@ json_gz_to_ttv2_bz2_expected_reduction = (0.18, 0.50)
 json_to_ttv2_bz2_expected_reduction = (0.015, 0.07)
 
 
-def convert_line(line_bytes):
-    line_unicode = line_bytes.decode('utf8')
-    line_object = json.loads(line_unicode.strip())
-    line_tweet = tweets.TTV2.from_dict(line_object)
-    line_ttv2_unicode = unicode(line_tweet)
-    line_ttv2_bytes = line_ttv2_unicode.encode('utf8')
-    return line_ttv2_bytes
+def read_line(line):
+    '''
+    Returns tuple ('tweet' | 'delete' | 'limit' | 'empty' | 'error', TTV2_bytestring | None)
+    '''
+    if line == '':
+        return 'empty', None
+
+    try:
+        obj = json.loads(line)
+    except (UnicodeDecodeError, ValueError), exc:
+        logger.debug('Error parsing JSON (%r): %r', exc, line)
+        return 'error', None
+
+    if 'limit' in obj:
+        return 'limit', None
+
+    if 'delete' in obj:
+        return 'delete'. None
+
+    try:
+        tweet = tweets.TTV2.from_dict(obj)
+        line_ttv2_unicode = unicode(tweet)
+        line_ttv2_bytes = line_ttv2_unicode.encode('utf8')
+
+        return 'tweet', line_ttv2_bytes
+    except KeyError, exc:
+        logger.error('Error parsing tweet (%r): %r', exc, line)
+        return 'error', None
 
 
 def convert(json_filepath, ttv2_filepath):
     # the given json_filepath can be either gzip'ed or bzip2'ed or not
-    # the resulting file at ttv2_path will always be bzip2'ed
-    # nerrors = 0
-    # ndeletes = 0
-    # ntweets = 0
-    # logger.info('{:.2%} reduction, {:d} tweets, {:d} errors, {:d} deletes'.format(
-    #     reduction, ntweets, nerrors, ndeletes))
-
-    ttv2_fp = bz2.BZ2File(ttv2_filepath, 'w')
     json_fp = filesystem.open_with_autodecompress(json_filepath)
+    # the resulting file at ttv2_path will always be bzip2'ed
+    ttv2_fp = bz2.BZ2File(ttv2_filepath, 'w')
     try:
-        for line_bytes in json_fp:
-            try:
-                line_ttv2_bytes = convert_line(line_bytes)
-                print >> ttv2_fp, line_ttv2_bytes
-            except UnicodeDecodeError, exc:
-                logger.error('Error decoding line: %s (%s)', line_bytes, exc)
-            except ValueError, exc:
-                logger.error('Error parsing JSON: %r (%s)', line_bytes, exc)
-            except KeyError, exc:
-                logger.error('Error reading tweet %r: %s', line_bytes, exc)
+        for line in json_fp:
+            result, ttv2 = read_line(line)
+            print >> ttv2_fp, ttv2
+            yield result
     finally:
         ttv2_fp.close()
         json_fp.close()
-
-    cleanup(json_filepath, ttv2_filepath)
 
 
 def cleanup(json_filepath, ttv2_filepath):
@@ -57,6 +65,7 @@ def cleanup(json_filepath, ttv2_filepath):
     json_size = os.path.getsize(json_filepath)
     # reduction will generally be in the (0.05, 0.5) interval
     reduction = float(ttv2_size) / float(json_size)
+    logger.debug('reduced to %.2f of original size', reduction)
 
     if json_filepath.endswith('.json.gz'):
         min_reduction, max_reduction = json_gz_to_ttv2_bz2_expected_reduction
@@ -101,4 +110,6 @@ def main(parser):
             continue
 
         logger.info('Converting %s -> %s', filepath, ttv2_filepath)
-        convert(filepath, ttv2_filepath)
+        print Counter(convert(filepath, ttv2_filepath))
+
+        cleanup(filepath, ttv2_filepath)
