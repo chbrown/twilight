@@ -1,31 +1,22 @@
 {
   "name": "twilight",
   "version": "0.3.11",
-  "description": "Twitter (crawling) tools.",
+  "description": "Twitter API tools",
   "keywords": [
     "twilight",
     "oauth",
     "crawling",
     "bot"
   ],
-  "homepage": "http://github.com/chbrown/twilight",
+  "homepage": "http://github.com/chbrown/twilight-node",
   "repository": {
     "type": "git",
-    "url": "http://github.com/chbrown/twilight.git"
+    "url": "http://github.com/chbrown/twilight-node.git"
   },
   "bin": {
-    "twitter-aggregate": "bin/twitter-aggregate.js",
-    "twitter-curl": "bin/twitter-curl.js",
-    "twitter-replay": "bin/twitter-replay.js",
-    "twitter-rest": "bin/twitter-rest.js",
-    "twitter-rtcount": "bin/twitter-rtcount.js",
-    "twitter-stream": "bin/twitter-stream.js"
+    "twilight": "bin/twilight"
   },
-  "author": {
-    "name": "Christopher Brown",
-    "email": "io@henrian.com",
-    "url": "http://henrian.com"
-  },
+  "author": "Christopher Brown <io@henrian.com> (http://henrian.com)",
   "license": "MIT",
   "dependencies": {
     "async": "*",
@@ -34,7 +25,8 @@
     "optimist": "*",
     "request": "*",
     "streaming": "*",
-    "sv": "*"
+    "sv": "*",
+    "underscore": "*"
   },
   "devDependencies": {
     "tap": "*"

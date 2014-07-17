@@ -110,7 +110,8 @@ JSONStoTweet.prototype._chunk = function(chunk, encoding) {
 var TweetToTTV2 = exports.TweetToTTV2 = function() {
   // converts tweet objects to tab separated format (specifically, TTV2)
   sv.Stringifier.call(this, {
-    columns: ['id', 'created_at', 'text', 'coordinates', 'place_id', 'place_str',
+    columns: [
+      'id', 'created_at', 'text', 'coordinates', 'place_id', 'place_str',
       'in_reply_to_status_id', 'in_reply_to_screen_name', 'retweet_id',
       'retweet_count', 'user_screen_name', 'user_id', 'user_created_at',
       'user_name', 'user_description', 'user_location', 'user_url',

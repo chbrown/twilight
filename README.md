@@ -192,6 +192,36 @@ And then, from within the root directory of this git repository, run the followi
 `.travis.yml` should now have those variables, but encrypted with Travis CI's public key.
 
 
+
+    // 6: convert to ttv2 (optional)
+    if (opts.ttv2) {
+      // 6a. tweet consolidator -- handles the Buffer->utf8 conversion
+      var jsons_to_tweet = new tweet.JSONStoTweet();
+      // jsons_to_tweet.on('error', shutdown);
+      response = response.pipe(jsons_to_tweet);
+      // 6b. ttv2 flattener
+      var tweet_to_ttv2 = new tweet.TweetToTTV2();
+      response = response.pipe(tweet_to_ttv2);
+      // .on('error', shutdown);
+    }
+    response.pipe(output);
+
+      ttv2: opts.ttv2,
+      `ttv2`: Boolean (default: false)
+          Convert into tab-separated TTV2 format
+
+
+  // if (opts.cli) {
+  //   var curl_cli = ['curl', req_opts.url,
+  //     '-H', '"content-type: application/x-www-form-urlencoded; charset=utf-8"',
+  //     '-H', 'Authorization: OAuth oauth_consumer_key="xllpWZyC42jL6iQg2M8gQ",oauth_nonce="8c08aeaf1d2c4c61af9182ff078560e7",oauth_signature_method="HMAC-SHA1",oauth_timestamp="1371159851",oauth_token="772224145-hfDlC2qUubxIR8NYtovMkdmRu1x4ROsKkVOb5w0c",oauth_version="1.0",oauth_signature="QW18Aur%2FERy4Prn%2BEJnHQo6i6F0%3D"',
+  //     '-H', 'content-length: 30',
+  //     '-d', opts.filter,
+  //   ];
+  // }
+
+
+
 ## License
 
 Copyright © 2011–2013 Christopher Brown. [MIT Licensed](https://github.com/chbrown/twilight/blob/master/LICENSE).
