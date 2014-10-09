@@ -3,62 +3,76 @@ var logger = require('loge');
 var path = require('path');
 var querystring = require('querystring');
 var request = require('request');
+var stream = require('stream');
 var streaming = require('streaming');
 var sv = require('sv');
 var url = require('url');
+var util = require('util');
 
 var twilight = require('..');
+var errors = require('../errors');
 var credentials = require('../credentials');
 
-exports.userStream = function(input_stream, callback) {
-  /**
-  */
-  var input_stream_batched = input_stream
-    .pipe(new streaming.Splitter())
-    .pipe(new streaming.Batcher(100));
-
-  input_stream_batched.on('end', function() {
-    callback();
-  });
-
-  (function loop() {
-    var batch = input_stream_batched.read();
-    if (batch === null) {
-      // no available data; wait
-      input_stream_batched.once('readable', function() {
-        loop();
-      });
-    }
-    else {
-      twilight.requestWithOAuthUntilSuccess({
-        method: 'POST',
-        // url: 'https://api.twitter.com/1.1/statuses/lookup.json',
-        url: 'https://api.twitter.com/1.1/users/lookup.json',
-        timeout: 10000,
-        // json: true,
-        form: {
-          // for now suppose they're all screen names
-          screen_name: batch.join(','),
-          // trim_user: false,
-          // map: true,
-        },
-      }, function(err, response) {
-        if (err) return callback(err);
-
-        streaming.readToEnd(response, function(err, chunks) {
-          if (err) return callback(err);
-
-          var body = chunks.join('');
-          JSON.parse(body).forEach(function(obj) {
-            console.log(JSON.stringify(obj));
-          });
-
-          loop();
-        });
-      });
-    }
-  })();
+var UserStream = exports.UserStream = function() {
+  stream.Transform.call(this, {objectMode: true});
 };
+util.inherits(UserStream, stream.Transform);
+UserStream.prototype._transform = function(chunk, encoding, callback) {
+  var self = this;
+  twilight.requestWithOAuthUntilSuccess({
+    method: 'POST',
+    // url: 'https://api.twitter.com/1.1/statuses/lookup.json',
+    url: 'https://api.twitter.com/1.1/users/lookup.json',
+    timeout: 10000,
+    form: {
+      // for now assume they're all screen names
+      screen_name: chunk.join(','),
+    },
+  }, function(err, response) {
+    if (err) return callback(err);
+
+    streaming.readToEnd(response, function(err, chunks) {
+      if (err) return callback(err);
+
+      var body = chunks.join('');
+      JSON.parse(body).forEach(function(obj) {
+        self.push(obj);
+      });
+      callback();
+    });
+  });
+};
+
+var StatusStream = exports.StatusStream = function() {
+  stream.Transform.call(this, {objectMode: true});
+};
+util.inherits(StatusStream, stream.Transform);
+StatusStream.prototype._transform = function(chunk, encoding, callback) {
+  var self = this;
+  twilight.requestWithOAuthUntilSuccess({
+    method: 'POST',
+    url: 'https://api.twitter.com/1.1/statuses/lookup.json',
+    timeout: 10000,
+    form: {
+      id: chunk.join(','),
+    },
+  }, function(err, response) {
+    if (err) return callback(err);
+
+    streaming.readToEnd(response, function(err, chunks) {
+      if (err) return callback(err);
+
+      var body = chunks.join('');
+      var statuses = JSON.parse(body);
+      logger.info('Fetched %d statuses', statuses.length);
+      statuses.forEach(function(status) {
+        self.push(status);
+      });
+      callback();
+    });
+  });
+};
+
 
 exports.getUsers = function(users, callback) {
   /** Get the user objects for a list of user_ids and/or screen_names.
@@ -97,7 +111,6 @@ exports.getUsers = function(users, callback) {
     else {
       body = JSON.parse(response);
     }
-    // logger.debug('twitter response', body);
     var find = function(user) {
       if (user.id_str) {
         return _.findWhere(body, user);

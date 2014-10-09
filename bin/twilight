@@ -10,6 +10,7 @@ var optimist = require('optimist')
     '  stream         Call one of the Twitter Streaming API endpoints',
     '  rest           Call one of the Twitter REST API endpoints',
     '  users          Get user info from stream of screen names or user IDs',
+    '  statuses       Get full status payloads from stream of status IDs',
   ].join('\n'))
   .describe({
     help: 'print this help message',
@@ -33,6 +34,7 @@ else {
     stream: require('./commands/stream'),
     rest: require('./commands/rest'),
     users: require('./commands/users'),
+    statuses: require('./commands/statuses'),
   };
 
   argv = optimist.check(function(argv) {
