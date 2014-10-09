@@ -28,19 +28,19 @@ module.exports = function(argv) {
 
   argv = optimist.argv;
 
-    /** rest: make a http(s) call against the Twitter API
+  /** rest: make a http(s) call against the Twitter API
 
-    `urlStr`: String
-    `opts`: Object
-        `method`: String (optional)
-        `oauth`: Object
-            ... see "twitter-curl.js"
-        `timeout`: Number (optional)
-        `data`: String (optional)
-        `json`: Boolean (optional)
-            JSONize output
-    `callback`: function(err, readable_stream)
-    */
+  `urlStr`: String
+  `opts`: Object
+      `method`: String (optional)
+      `oauth`: Object
+          ... see "twitter-curl.js"
+      `timeout`: Number (optional)
+      `data`: String (optional)
+      `json`: Boolean (optional)
+          JSONize output
+  `callback`: function(err, readable_stream)
+  */
   var urlStr = argv._[1];
 
   var urlObj = url.parse(urlStr);
