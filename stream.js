@@ -26,7 +26,7 @@ var decompressStream = function(stream, encoding) {
     return stream.pipe(inflate);
   }
 
-  logger.info('Not (un)wrapping HTTP response with encoding "%s"', encoding);
+  logger.debug('Not (un)wrapping HTTP response with encoding "%s"', encoding);
   return stream;
 };
 
