@@ -47,23 +47,42 @@ var StatusStream = exports.StatusStream = function() {
   stream.Transform.call(this, {objectMode: true});
 };
 util.inherits(StatusStream, stream.Transform);
-StatusStream.prototype._transform = function(chunk, encoding, callback) {
+StatusStream.prototype._transform = function(id_strs, encoding, callback) {
+  /** encoding should be null; id_strs is the Array of status id strings
+
+  The lookup endpoint returns a list of {<tweet>} objects by default.
+  When map is "true", it returns a payload like: {id: { "123": {<tweet>}, "456": {<tweet>} } }
+  */
   var self = this;
   twilight.requestWithOAuthUntilSuccess({
     method: 'POST',
     url: 'https://api.twitter.com/1.1/statuses/lookup.json',
     timeout: 10000,
     form: {
-      id: chunk.join(','),
+      map: true,
+      id: id_strs.join(','),
     },
   }, function(err, response) {
-    if (err) return callback(err);
+    if (err) {
+      self.emit('error', err);
+      return callback();
+    }
 
     streaming.readToEnd(response, function(err, chunks) {
-      if (err) return callback(err);
+      if (err) {
+        self.emit('error', err);
+        return callback();
+      }
 
       var body = chunks.join('');
-      var statuses = JSON.parse(body);
+      var statuses_map = JSON.parse(body).id;
+
+      var statuses = id_strs.map(function(id_str) {
+        // statuses_map[id_str] will be null for all requested statuses that can't be found
+        var status = statuses_map[id_str];
+        return status === null ? {id_str: id_str.toString(), missing: true} : status;
+      });
+
       logger.info('Fetched %d statuses', statuses.length);
       statuses.forEach(function(status) {
         self.push(status);

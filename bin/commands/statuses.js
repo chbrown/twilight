@@ -9,6 +9,9 @@ var start = function(input_stream, output_stream) {
   var stream = input_stream
     .pipe(new streaming.Batcher(100))
     .pipe(new api.StatusStream())
+    .on('error', function(err) {
+      logger.error('api.StatusStream error', err);
+    })
     // .pipe(new streaming.Mapper(function(statuses) {}))
     .pipe(new streaming.json.Stringifier())
     .pipe(output_stream);
@@ -37,6 +40,7 @@ module.exports = function(argv) {
 
   process.stdin.resume();
   var input_stream = process.stdin.pipe(new streaming.Splitter());
+  input_stream.setEncoding('utf8');
 
   if (argv.output) {
     logger.info('Reading existing tweets from "%s"', argv.output);
@@ -44,21 +48,21 @@ module.exports = function(argv) {
     var fetched_ids = {};
     var fetched_stream = fs.createReadStream(argv.output, {flags: 'r', encoding: 'utf8'})
       .on('error', function(err) {
-        var output_stream = fs.createWriteStream(argv.output, {flags: 'a', encoding: 'utf8'})
+        var output_stream = fs.createWriteStream(argv.output, {flags: 'a', encoding: 'utf8'});
         start(input_stream, output_stream);
       })
       .pipe(new streaming.json.Parser())
       .on('data', function(status) {
         fetched_ids[status.id_str] = 1;
       })
-      .on('end', function(err) {
+      .on('end', function() {
         logger.info('Found %d tweets in "%s"', Object.keys(fetched_ids).length, argv.output);
 
         input_stream = input_stream.pipe(new streaming.Filter(function(status_id) {
           return fetched_ids[status_id] === undefined;
         }));
 
-        var output_stream = fs.createWriteStream(argv.output, {flags: 'a', encoding: 'utf8'})
+        var output_stream = fs.createWriteStream(argv.output, {flags: 'a', encoding: 'utf8'});
         start(input_stream, output_stream);
       });
   }
