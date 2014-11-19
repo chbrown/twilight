@@ -38,9 +38,19 @@ var requestWithOAuth = exports.requestWithOAuth = function(opts, callback) {
 
 var requestWithOAuthUntilSuccess = exports.requestWithOAuthUntilSuccess = function(opts, callback) {
   requestWithOAuth(opts, function(err, response) {
-    if (err && err instanceof errors.TwitterError && err.statusCode == 403) {
-      logger.debug('%s, retrying', err.message);
-      return requestWithOAuthUntilSuccess(opts, callback);
+    if (err) {
+      if (err instanceof errors.TwitterError && err.statusCode == 403) {
+        logger.debug('403: %s, retrying', err.message);
+        return requestWithOAuthUntilSuccess(opts, callback);
+      }
+      else if (err.code == 'ETIMEDOUT') {
+        logger.debug('ETIMEDOUT: %s, retrying', err.message);
+        return requestWithOAuthUntilSuccess(opts, callback);
+      }
+      else if (err.code == 'ECONNRESET') {
+        logger.debug('ECONNRESET: %s, retrying', err.message);
+        return requestWithOAuthUntilSuccess(opts, callback);
+      }
     }
     callback(err, response);
   });
