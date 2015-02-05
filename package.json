@@ -8,10 +8,10 @@
     "crawling",
     "bot"
   ],
-  "homepage": "http://github.com/chbrown/twilight-node",
+  "homepage": "http://github.com/chbrown/twilight",
   "repository": {
     "type": "git",
-    "url": "http://github.com/chbrown/twilight-node.git"
+    "url": "http://github.com/chbrown/twilight.git"
   },
   "bin": {
     "twilight": "bin/twilight"
