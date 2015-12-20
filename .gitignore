@@ -1,6 +1,8 @@
-.DS_Store
-twilight.egg-info/
-*.pyc
-dist/
-/log/
-/node_modules/
+/bin/index.js
+/codes.js
+/credentials.js
+/index.js
+/bin/index.d.ts
+/codes.d.ts
+/credentials.d.ts
+/index.d.ts

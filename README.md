@@ -133,14 +133,15 @@ Fields are 1-indexed for easy AWKing (see Markdown source for 0-indexing).
 
 This format is not the default, and will be the output only when you use the `--ttv2` option.
 
+
 ## Examples
 
 Install [json](https://github.com/zpoley/json-command) first: `npm install json`. It's awesome.
 
-    twitter-curl --filter 'track=bootstrap' | json -C text
-    twitter-curl --filter 'track=bootstrap' | json -C user.screen_name text
-    twitter-curl --filter 'track=انتخابات' | json -C text
-    twitter-curl --filter 'track=sarcmark,%F0%9F%91%8F' | json -C text
+    twilight stream --filter 'track=bootstrap' | jq -r -c .text
+    twilight stream --filter 'track=bootstrap' | jq -c '{user.screen_name, text}'
+    twilight stream --filter 'track=انتخابات' | jq -r -c .text
+    twilight stream --filter 'track=sarcmark,%F0%9F%91%8F' | jq -r -c .text
 
 It supports unicode: انتخابات is Arabic for "elections," and `decodeURIComponent('%F0%9F%91%8F')`
 is the ["CLAPPING HANDS" (U+1F44F)](http://www.fileformat.info/info/unicode/char/1f44f/index.htm) character.
@@ -151,11 +152,13 @@ supervisord Python-interpolates strings, so you'll need to escape the percent si
     [program:slowclap]
     command=twitter-curl --filter "track=%%F0%%9F%%91%%8F" --file /tmp/slowclap.json
 
+
 ### TTV2 Example
 
 Instead of JSON, you can use AWK to look at the TTV2:
 
     twitter-curl --filter 'track=data,science' --ttv2 | awk 'BEGIN{FS="\t"}{print $4,$3}'
+
 
 ## Stats
 
@@ -163,65 +166,6 @@ Instead of JSON, you can use AWK to look at the TTV2:
 * VSZ on a machine running six of these crawlers is 80-90MB.
 
 
-## Python contents vs. Javascript contents
-
-    easy_install -U twilight
-
-The Python and Javascript components are mostly complementary.
-The Javascript offers crawlers, Python provides post-processing.
-
-
-## Testing with Travis CI
-
-The tested CLI commands now check for OAuth in specific environment variables before reading the given `--accounts` file or the default one (`~/.twitter`).
-
-To get tests to run on Travis CI, we can use `travis` command line tool to encrypt a quad of valid Twitter OAuth credentials so that only Travis CI can see them.
-
-Put together a file that looks like this (call it `twilight.env`):
-
-    consumer_key=bepLTQD5ftZCjqhXgkuJW
-    consumer_secret=jZ4HEYgNRKwJykbh5ptmcqV7v0o2WODdiMTF1fl6B9X
-    access_token=167246169-e1XTUxZqLnRaEyBF8KwOJtbID26gifMpAjukN5vz
-    access_token_secret=OVm7fJt8oY0C9kBsvych6Duq5pNIUxwagG143HdR
-
-And then, from within the root directory of this git repository, run the following sequence:
-
-    gem install travis
-    travis encrypt -s -a < twilight.env
-
-`.travis.yml` should now have those variables, but encrypted with Travis CI's public key.
-
-
-
-    // 6: convert to ttv2 (optional)
-    if (opts.ttv2) {
-      // 6a. tweet consolidator -- handles the Buffer->utf8 conversion
-      var jsons_to_tweet = new tweet.JSONStoTweet();
-      // jsons_to_tweet.on('error', shutdown);
-      response = response.pipe(jsons_to_tweet);
-      // 6b. ttv2 flattener
-      var tweet_to_ttv2 = new tweet.TweetToTTV2();
-      response = response.pipe(tweet_to_ttv2);
-      // .on('error', shutdown);
-    }
-    response.pipe(output);
-
-      ttv2: opts.ttv2,
-      `ttv2`: Boolean (default: false)
-          Convert into tab-separated TTV2 format
-
-
-  // if (opts.cli) {
-  //   var curl_cli = ['curl', req_opts.url,
-  //     '-H', '"content-type: application/x-www-form-urlencoded; charset=utf-8"',
-  //     '-H', 'Authorization: OAuth oauth_consumer_key="xllpWZyC42jL6iQg2M8gQ",oauth_nonce="8c08aeaf1d2c4c61af9182ff078560e7",oauth_signature_method="HMAC-SHA1",oauth_timestamp="1371159851",oauth_token="772224145-hfDlC2qUubxIR8NYtovMkdmRu1x4ROsKkVOb5w0c",oauth_version="1.0",oauth_signature="QW18Aur%2FERy4Prn%2BEJnHQo6i6F0%3D"',
-  //     '-H', 'content-length: 30',
-  //     '-d', opts.filter,
-  //   ];
-  // }
-
-
-
 ## License
 
-Copyright © 2011–2013 Christopher Brown. [MIT Licensed](https://github.com/chbrown/twilight/blob/master/LICENSE).
+Copyright 2011-2015 Christopher Brown. [MIT Licensed](http://chbrown.github.io/licenses/MIT/#2011-2015).
