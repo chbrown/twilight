@@ -5,14 +5,69 @@ export interface ObjectMap<T> {
     [index: string]: T;
 }
 export interface Status {
-    id_str: string;
+    contributors?: any;
+    coordinates?: any;
+    created_at?: string;
+    favorited?: boolean;
+    geo?: any;
+    id?: number;
+    id_str?: string;
+    in_reply_to_screen_name?: string;
+    in_reply_to_status_id?: number;
+    in_reply_to_status_id_str?: string;
+    in_reply_to_user_id?: number;
+    in_reply_to_user_id_str?: string;
+    place?: any;
+    retweet_count?: number;
+    retweeted?: boolean;
+    source?: string;
+    text?: string;
+    truncated?: boolean;
+    /** `missing` is a special non-API flag acting as a placeholder for
+    non-existent or deleted statuses. */
     missing?: boolean;
-    [index: string]: any;
 }
 export interface User {
-    id_str: string;
-    screen_name: string;
-    [index: string]: any;
+    contributors_enabled?: boolean;
+    created_at?: string;
+    default_profile?: boolean;
+    default_profile_image?: boolean;
+    description?: string;
+    favourites_count?: number;
+    follow_request_sent?: boolean;
+    followers_count?: number;
+    following?: boolean;
+    friends_count?: number;
+    geo_enabled?: boolean;
+    id?: number;
+    id_str?: string;
+    is_translator?: boolean;
+    lang?: string;
+    listed_count?: number;
+    location?: string;
+    name?: string;
+    notifications?: boolean;
+    profile_background_color?: string;
+    profile_background_image_url?: string;
+    profile_background_image_url_https?: string;
+    profile_background_tile?: boolean;
+    profile_banner_url?: string;
+    profile_image_url?: string;
+    profile_image_url_https?: string;
+    profile_link_color?: string;
+    profile_sidebar_border_color?: string;
+    profile_sidebar_fill_color?: string;
+    profile_text_color?: string;
+    profile_use_background_image?: boolean;
+    protected?: boolean;
+    screen_name?: string;
+    show_all_inline_media?: boolean;
+    status?: Status;
+    statuses_count?: number;
+    time_zone?: string;
+    url?: string;
+    utc_offset?: number;
+    verified?: boolean;
 }
 export interface UrlEntity {
     url: string;
