@@ -39,9 +39,11 @@ export interface Status {
   place?: any;
   retweet_count?: number;
   retweeted?: boolean;
+  retweeted_status?: Status;
   source?: string;
   text?: string;
   truncated?: boolean;
+  user?: User;
   /** `missing` is a special non-API flag acting as a placeholder for
   non-existent or deleted statuses. */
   missing?: boolean;
