@@ -141,16 +141,22 @@ Apparently Twitter is happy with both/either.
 
 This API method can only handle 100 screen_names at a time
 */
-export declare function getUsers(users: {
-    id_str?: string;
+export declare function getUsers(users: Array<{
+    id_str: string;
     screen_name?: string;
-}[], callback: (error: Error, users?: User[]) => void): void;
+} | {
+    id_str?: string;
+    screen_name: string;
+}>, callback: (error: Error, users?: User[]) => void): void;
 /**
 https://dev.twitter.com/rest/reference/get/statuses/user_timeline
 */
 export declare function getUserStatuses(user: {
-    id_str?: string;
+    id_str: string;
     screen_name?: string;
+} | {
+    id_str?: string;
+    screen_name: string;
 }, max_id: string, callback: (error: Error, statuses?: Status[]) => void): void;
 /**
 https://dev.twitter.com/rest/reference/get/followers/ids
@@ -159,8 +165,11 @@ https://dev.twitter.com/rest/reference/get/followers/ids
 @returns {string[]} a list of user IDs for every user following the specified user.
 */
 export declare function getUserFollowers(user: {
-    id_str?: string;
+    id_str: string;
     screen_name?: string;
+} | {
+    id_str?: string;
+    screen_name: string;
 }, callback: (error: Error, followers?: string[]) => void): void;
 /**
 https://dev.twitter.com/rest/reference/get/friends/ids
@@ -169,8 +178,11 @@ https://dev.twitter.com/rest/reference/get/friends/ids
 @returns {string[]} a list of user IDs for every user followed by specified user.
 */
 export declare function getUserFriends(user: {
-    id_str?: string;
+    id_str: string;
     screen_name?: string;
+} | {
+    id_str?: string;
+    screen_name: string;
 }, callback: (error: Error, friends?: string[]) => void): void;
 /**
 Returns all the information about a known place.

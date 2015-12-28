@@ -1,5 +1,5 @@
 BIN := node_modules/.bin
-TYPESCRIPT := $(shell jq -r '.files[]' tsconfig.json | grep -v node_modules)
+TYPESCRIPT := $(shell jq -r '.files[]' tsconfig.json | grep -Fv node_modules | grep -Fv .d.ts)
 JAVASCRIPT := $(TYPESCRIPT:%.ts=%.js)
 MOCHA_ARGS := --compilers js:babel-core/register --timeout 10000
 
