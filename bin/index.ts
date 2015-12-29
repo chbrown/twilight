@@ -15,7 +15,8 @@ import {Timeout} from 'streaming/timeout';
 import {Mapper} from 'streaming/mapper';
 import {Transformer} from 'streaming/transformer';
 
-import {User, Status, request, readJSON, getStatuses, getUsers, StatusStream} from '../index';
+import {User, UserIdentifier, Status, request, readJSON, getStatuses, getUsers, StatusStream} from '../index';
+import {TwitterAPIEndpoints} from '../codes';
 
 function readExistingTweets(outputFilepath: string,
                             callback: (error: Error, fetchedStatuses?: {[index: string]: number}) => void) {
@@ -199,34 +200,38 @@ function stream(argvparser: yargs.Argv, callback: (error?: Error) => void) {
   }
 }
 
-export class UserStream extends Transform {
-  constructor() {
-    super({objectMode: true});
-  }
-  _transform(users: Array<{id_str: string, screen_name?: string} | {id_str?: string, screen_name: string}>,
-             encoding: string,
-             callback: (error?: Error, outputChunk?: any) => void) {
-    getUsers(users, (error, statuses) => {
+/**
+STDIN should be a line-delimited stream of JSON objects like
+{screen_name: 'chbrown'} or {id_str: '14380188'}
+*/
+function users(argvparser: yargs.Argv, callback: (error?: Error) => void) {
+  let argv = argvparser.argv;
+
+  function transformFn(userIdentifiers: UserIdentifier[],
+                       encoding: string,
+                       callback: (error?: Error, outputChunk?: any) => void) {
+    getUsers(userIdentifiers, (error, users) => {
       if (error) return callback(error);
       users.forEach(user => this.push(user));
       return callback();
     });
   }
-}
 
-function users(argvparser: yargs.Argv, callback: (error?: Error) => void) {
-  let argv = argvparser.argv;
-
+  // process.stdin.setEncoding('utf8');
   process.stdin.resume();
   var stream = process.stdin
-    .pipe(new Splitter())
+    .pipe(new JSONParser())
     .pipe(new Batcher(100))
-    .pipe(new UserStream())
+    .pipe(new Transformer<UserIdentifier[], Status[]>(transformFn, {objectMode: true}))
     .pipe(new JSONStringifier())
     .pipe(process.stdout);
 
-  stream.on('end', function() {
-    process.exit(0);
+  stream.on('end', callback);
+}
+
+function showRestHelp() {
+  TwitterAPIEndpoints.forEach(({path, method}) => {
+    console.log(`${method} ${path}`);
   });
 }
 
@@ -243,6 +248,7 @@ export function main() {
       .example('twilight users < screen_names.txt', 'Get user profiles for the given screen names')
     .command('statuses', 'Get full status payloads from stream of status IDs')
       .example('twilight statuses < ids.txt', 'Retrieve full tweets for each status ID line in ids.txt')
+    .command('rest --help', 'Print out list of Twitter REST API endpoints')
     .options({
       help: {
         description: 'print this help message',
@@ -257,8 +263,7 @@ export function main() {
       version: {
         description: 'print version',
       },
-    })
-    .demand(1);
+    });
 
   let argv = argvparser.argv;
   if (argv.verbose) {
@@ -272,12 +277,15 @@ export function main() {
 
   if (argv.help) {
     argvparser.showHelp();
+    if (argv._[0] == 'rest') {
+      showRestHelp();
+    }
   }
   else if (argv.version) {
     console.log(require('../package').version);
   }
   else {
-    argv = argvparser.check((argv) => {
+    argv = argvparser.demand(1).check((argv) => {
       let command = argv._[0];
       if (!(command in commands)) {
         throw new Error(`Unrecognized command: ${command}`);

@@ -1,11 +1,5 @@
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
 var fs_1 = require('fs');
 var url_1 = require('url');
-var stream_1 = require('stream');
 var yargs = require('yargs');
 var loge_1 = require('loge');
 var batcher_1 = require('streaming/batcher');
@@ -15,6 +9,7 @@ var splitter_1 = require('streaming/splitter');
 var timeout_1 = require('streaming/timeout');
 var transformer_1 = require('streaming/transformer');
 var index_1 = require('../index');
+var codes_1 = require('../codes');
 function readExistingTweets(outputFilepath, callback) {
     var fetchedStatuses = {};
     // quick exit if output is undefined
@@ -182,34 +177,35 @@ function stream(argvparser, callback) {
         }, timeout * 1000);
     }
 }
-var UserStream = (function (_super) {
-    __extends(UserStream, _super);
-    function UserStream() {
-        _super.call(this, { objectMode: true });
-    }
-    UserStream.prototype._transform = function (users, encoding, callback) {
+/**
+STDIN should be a line-delimited stream of JSON objects like
+{screen_name: 'chbrown'} or {id_str: '14380188'}
+*/
+function users(argvparser, callback) {
+    var argv = argvparser.argv;
+    function transformFn(userIdentifiers, encoding, callback) {
         var _this = this;
-        index_1.getUsers(users, function (error, statuses) {
+        index_1.getUsers(userIdentifiers, function (error, users) {
             if (error)
                 return callback(error);
             users.forEach(function (user) { return _this.push(user); });
             return callback();
         });
-    };
-    return UserStream;
-})(stream_1.Transform);
-exports.UserStream = UserStream;
-function users(argvparser, callback) {
-    var argv = argvparser.argv;
+    }
+    // process.stdin.setEncoding('utf8');
     process.stdin.resume();
     var stream = process.stdin
-        .pipe(new splitter_1.Splitter())
+        .pipe(new json_1.Parser())
         .pipe(new batcher_1.Batcher(100))
-        .pipe(new UserStream())
+        .pipe(new transformer_1.Transformer(transformFn, { objectMode: true }))
         .pipe(new json_1.Stringifier())
         .pipe(process.stdout);
-    stream.on('end', function () {
-        process.exit(0);
+    stream.on('end', callback);
+}
+function showRestHelp() {
+    codes_1.TwitterAPIEndpoints.forEach(function (_a) {
+        var path = _a.path, method = _a.method;
+        console.log(method + " " + path);
     });
 }
 var commands = { stream: stream, rest: rest, users: users, statuses: statuses };
@@ -224,6 +220,7 @@ function main() {
         .example('twilight users < screen_names.txt', 'Get user profiles for the given screen names')
         .command('statuses', 'Get full status payloads from stream of status IDs')
         .example('twilight statuses < ids.txt', 'Retrieve full tweets for each status ID line in ids.txt')
+        .command('rest --help', 'Print out list of Twitter REST API endpoints')
         .options({
         help: {
             description: 'print this help message',
@@ -238,8 +235,7 @@ function main() {
         version: {
             description: 'print version',
         },
-    })
-        .demand(1);
+    });
     var argv = argvparser.argv;
     if (argv.verbose) {
         loge_1.logger.level = loge_1.Level.debug;
@@ -250,12 +246,15 @@ function main() {
     });
     if (argv.help) {
         argvparser.showHelp();
+        if (argv._[0] == 'rest') {
+            showRestHelp();
+        }
     }
     else if (argv.version) {
         console.log(require('../package').version);
     }
     else {
-        argv = argvparser.check(function (argv) {
+        argv = argvparser.demand(1).check(function (argv) {
             var command = argv._[0];
             if (!(command in commands)) {
                 throw new Error("Unrecognized command: " + command);
