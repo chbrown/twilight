@@ -92,6 +92,8 @@ export interface User {
   verified?: boolean;
 }
 
+export type UserIdentifier = {id_str: string, screen_name?: string} | {id_str?: string, screen_name: string};
+
 export interface UrlEntity {
   url: string;
   expanded_url: string;
@@ -295,14 +297,13 @@ export function getStatuses(id_strs: string[],
 /**
 Get the user objects for a list of user_ids and/or screen_names.
 
-users is a list of {id_str: '18116587'} or {screen_name: 'chbrown'} objects,
-i.e., {id_str: string} | {screen_name: string}
+users is a list of {id_str: '18116587'} or {screen_name: 'chbrown'} objects.
 
 Apparently Twitter is happy with both/either.
 
 This API method can only handle 100 screen_names at a time
 */
-export function getUsers(users: Array<{id_str: string, screen_name?: string} | {id_str?: string, screen_name: string}>,
+export function getUsers(users: UserIdentifier[],
                          callback: (error: Error, users?: User[]) => void) {
   request({
     method: 'POST',
@@ -322,7 +323,7 @@ export function getUsers(users: Array<{id_str: string, screen_name?: string} | {
       let fullUsers: User[] = (response.statusCode === 404) ? [] : JSON.parse(body);
 
       // extend the original objects so that we end up with the same ordering
-      let mergedUsers = users.map(user => { // {id_str: string} | {screen_name: string})
+      let mergedUsers = users.map(user => {
         if (user.id_str !== undefined) {
           return find(fullUsers, fullUser => fullUser.id_str == user.id_str);
         }
@@ -340,7 +341,7 @@ export function getUsers(users: Array<{id_str: string, screen_name?: string} | {
 /**
 https://dev.twitter.com/rest/reference/get/statuses/user_timeline
 */
-export function getUserStatuses(user: {id_str: string, screen_name?: string} | {id_str?: string, screen_name: string},
+export function getUserStatuses(user: UserIdentifier,
                                 max_id: string,
                                 callback: (error: Error, statuses?: Status[]) => void) {
   request({
@@ -367,7 +368,7 @@ https://dev.twitter.com/rest/reference/get/followers/ids
 @param {User} user - Whose followers we will find.
 @returns {string[]} a list of user IDs for every user following the specified user.
 */
-export function getUserFollowers(user: {id_str: string, screen_name?: string} | {id_str?: string, screen_name: string},
+export function getUserFollowers(user: UserIdentifier,
                                  callback: (error: Error, followers?: string[]) => void) {
   request({
     endpoint: 'followers/ids',
@@ -391,7 +392,7 @@ https://dev.twitter.com/rest/reference/get/friends/ids
 @param {User} user - Whose followees we will find.
 @returns {string[]} a list of user IDs for every user followed by specified user.
 */
-export function getUserFriends(user: {id_str: string, screen_name?: string} | {id_str?: string, screen_name: string},
+export function getUserFriends(user: UserIdentifier,
                                callback: (error: Error, friends?: string[]) => void) {
   request({
     endpoint: 'friends/ids',

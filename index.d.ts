@@ -71,6 +71,13 @@ export interface User {
     utc_offset?: number;
     verified?: boolean;
 }
+export declare type UserIdentifier = {
+    id_str: string;
+    screen_name?: string;
+} | {
+    id_str?: string;
+    screen_name: string;
+};
 export interface UrlEntity {
     url: string;
     expanded_url: string;
@@ -134,56 +141,31 @@ export declare function getStatuses(id_strs: string[], callback: (error: Error, 
 /**
 Get the user objects for a list of user_ids and/or screen_names.
 
-users is a list of {id_str: '18116587'} or {screen_name: 'chbrown'} objects,
-i.e., {id_str: string} | {screen_name: string}
+users is a list of {id_str: '18116587'} or {screen_name: 'chbrown'} objects.
 
 Apparently Twitter is happy with both/either.
 
 This API method can only handle 100 screen_names at a time
 */
-export declare function getUsers(users: Array<{
-    id_str: string;
-    screen_name?: string;
-} | {
-    id_str?: string;
-    screen_name: string;
-}>, callback: (error: Error, users?: User[]) => void): void;
+export declare function getUsers(users: UserIdentifier[], callback: (error: Error, users?: User[]) => void): void;
 /**
 https://dev.twitter.com/rest/reference/get/statuses/user_timeline
 */
-export declare function getUserStatuses(user: {
-    id_str: string;
-    screen_name?: string;
-} | {
-    id_str?: string;
-    screen_name: string;
-}, max_id: string, callback: (error: Error, statuses?: Status[]) => void): void;
+export declare function getUserStatuses(user: UserIdentifier, max_id: string, callback: (error: Error, statuses?: Status[]) => void): void;
 /**
 https://dev.twitter.com/rest/reference/get/followers/ids
 
 @param {User} user - Whose followers we will find.
 @returns {string[]} a list of user IDs for every user following the specified user.
 */
-export declare function getUserFollowers(user: {
-    id_str: string;
-    screen_name?: string;
-} | {
-    id_str?: string;
-    screen_name: string;
-}, callback: (error: Error, followers?: string[]) => void): void;
+export declare function getUserFollowers(user: UserIdentifier, callback: (error: Error, followers?: string[]) => void): void;
 /**
 https://dev.twitter.com/rest/reference/get/friends/ids
 
 @param {User} user - Whose followees we will find.
 @returns {string[]} a list of user IDs for every user followed by specified user.
 */
-export declare function getUserFriends(user: {
-    id_str: string;
-    screen_name?: string;
-} | {
-    id_str?: string;
-    screen_name: string;
-}, callback: (error: Error, friends?: string[]) => void): void;
+export declare function getUserFriends(user: UserIdentifier, callback: (error: Error, friends?: string[]) => void): void;
 /**
 Returns all the information about a known place.
 */

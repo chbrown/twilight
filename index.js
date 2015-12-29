@@ -178,8 +178,7 @@ exports.getStatuses = getStatuses;
 /**
 Get the user objects for a list of user_ids and/or screen_names.
 
-users is a list of {id_str: '18116587'} or {screen_name: 'chbrown'} objects,
-i.e., {id_str: string} | {screen_name: string}
+users is a list of {id_str: '18116587'} or {screen_name: 'chbrown'} objects.
 
 Apparently Twitter is happy with both/either.
 
