@@ -16,7 +16,7 @@
   "author": "Christopher Brown <io@henrian.com> (http://henrian.com)",
   "license": "MIT",
   "dependencies": {
-    "lodash": "^3.10.1",
+    "lodash": "^4.17.15",
     "loge": "^1.0.4",
     "request": "^2.67.0",
     "streaming": "1.0.3",
