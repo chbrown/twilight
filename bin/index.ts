@@ -1,7 +1,7 @@
 import {createReadStream, createWriteStream} from 'fs';
 import {parse as querystringParse} from 'querystring';
 import {parse as urlParse, format as urlFormat} from 'url';
-import {Transform} from 'stream';
+import {Transform, Writable} from 'stream';
 
 import * as yargs from 'yargs';
 import {logger, Level} from 'loge';
@@ -180,7 +180,7 @@ function stream(argvparser: yargs.Argv, callback: (error?: Error) => void) {
   inputStream = inputStream.pipe(new Timeout(interval));
 
   // default: destination is STDOUT
-  let outputStream = process.stdout
+  let outputStream: Writable = process.stdout
   if (argv.file !== '-') {
     // destination is a file
     let filepath = argv.file.replace(/TIMESTAMP/, () => {

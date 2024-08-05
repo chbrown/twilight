@@ -4,7 +4,7 @@ may come from the environment or a file, or perhaps other sources.
 */
 import {logger} from 'loge';
 import {readToEnd} from 'streaming';
-import {Parser} from 'sv';
+import {Parser} from '@chbrown/sv';
 import {createReadStream} from 'fs';
 
 export interface OAuth {

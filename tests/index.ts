@@ -1,8 +1,8 @@
-import assert from 'assert';
+import * as assert from 'assert';
 import {describe, it} from 'mocha';
 import {Parser as JSONParser} from 'streaming/json';
 import {request, getStatuses, getPlaceInformation, StatusStream,
-        getUsers, getUserFollowers, getUserFriends, getUserStatuses} from '../';
+        getUsers, getUserFollowers, getUserFriends, getUserStatuses} from '..';
 import {getOAuth} from '../credentials';
 
 describe('twilight rest', () => {

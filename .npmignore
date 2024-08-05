@@ -1,6 +1,4 @@
-bin/index.ts
-codes.ts
-credentials.ts
-index.ts
+*.ts
+!*.d.ts
 Makefile
 tsconfig.json

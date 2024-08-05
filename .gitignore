@@ -1,8 +1,3 @@
-/bin/index.js
-/codes.js
-/credentials.js
-/index.js
-/bin/index.d.ts
-/codes.d.ts
-/credentials.d.ts
-/index.d.ts
+*.js
+*.d.ts
+coverage/

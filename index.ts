@@ -1,10 +1,9 @@
 import {inspect} from 'util';
 import {Transform, Readable} from 'stream';
 import {IncomingMessage} from 'http';
-import {defaults, find, assign, includes} from 'lodash';
 import * as httpRequest from 'request';
 import {logger, Level} from 'loge';
-import {Stringifier} from 'sv';
+import {Stringifier} from '@chbrown/sv';
 import {parse as querystringParse} from 'querystring';
 import {parse as urlParse, format as urlFormat} from 'url';
 import {PassThrough} from 'stream';
@@ -167,7 +166,7 @@ export class TwitterError extends Error {
   name = 'TwitterError';
   constructor(statusCode: number, errorMessages: string[]) {
     super();
-    let {text, description} = find(TwitterAPIHTTPStatusCodes, ({code}) => code == statusCode);
+    let {text, description} = TwitterAPIHTTPStatusCodes.find(({code}) => code == statusCode);
     this.message = `${statusCode} ${text} (${description}): ${errorMessages.join(', ')}`;
   }
 }
@@ -187,12 +186,12 @@ export interface RequestOptions {
 
 export function request(options: RequestOptions,
                         callback: (error: Error, response?: IncomingMessage) => void) {
-  defaults(options, {host: 'api.twitter.com', method: 'GET', retriesRemaining: 10, query: {}});
+  options = Object.assign({host: 'api.twitter.com', method: 'GET', retriesRemaining: 10, query: {}}, options);
   // delete undefined query values
   options.query = compactObject(options.query);
   logger.debug(`request(${JSON.stringify(options)})`);
   // exit quickly if the endpoint is malformed
-  let twitterAPIEndpoint = find(TwitterAPIEndpoints, ({regExp}) => regExp.test(options.endpoint));
+  let twitterAPIEndpoint = TwitterAPIEndpoints.find(({regExp}) => regExp.test(options.endpoint));
   if (twitterAPIEndpoint === undefined) {
     return callback(new Error(`"${options.endpoint}" is not a valid Twitter API Endpoint`));
   }
@@ -238,7 +237,7 @@ export function request(options: RequestOptions,
     .on('response', (response: IncomingMessage) => {
       // we don't want to treat all non-200 responses as errors; for example,
       // with /users/lookup, a 404 indicates that there were no matches at all.
-      if (includes(TwitterAPIFatalHTTPStatusCodes, response.statusCode)) {
+      if (TwitterAPIFatalHTTPStatusCodes.includes(response.statusCode)) {
         // Twitter error responses look like:
         // {"errors":[{"message":"Sorry, that page does not exist","code":34}]}
         readJSON(response, (error, body: {errors: {message: string, code: number}[]}) => {
@@ -325,12 +324,12 @@ export function getUsers(users: UserIdentifier[],
       // extend the original objects so that we end up with the same ordering
       let mergedUsers = users.map(user => {
         if (user.id_str !== undefined) {
-          return find(fullUsers, fullUser => fullUser.id_str == user.id_str);
+          return fullUsers.find(fullUser => fullUser.id_str == user.id_str);
         }
         else {
           // search by screen_name must be case insensitive
           let needle = user.screen_name.toLowerCase();
-          return find(fullUsers, fullUser => fullUser.screen_name.toLowerCase() == needle);
+          return fullUsers.find(fullUser => fullUser.screen_name.toLowerCase() == needle);
         }
       });
       callback(null, mergedUsers);
@@ -439,7 +438,7 @@ export class StatusStream extends PassThrough {
   constructor(public options: StatusStreamOptions = {}) {
     super({objectMode: false});
 
-    defaults(this.options, {decompress: false, interval: 86400});
+    this.options = Object.assign({decompress: false, interval: 86400}, this.options);
 
     request({
       host: 'stream.twitter.com',
